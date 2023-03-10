@@ -1,0 +1,187 @@
+<div>
+    <div class="input-row">
+        <input id="tag-label" />
+        <button id="add-tag">
+            Add tag
+        </button>
+    </div>
+
+    <div id="tags">
+
+    </div>
+</div>
+
+<script>
+    // Press enter to trigger 'Add tag' button'
+    document.getElementById("tag-label").addEventListener("keypress", function (event) {
+        if (event.key === "Enter") {
+            document.getElementById("add-tag").click();
+        }
+    });
+
+    // Add Tag through input
+    document.getElementById("add-tag").onclick = () => {
+        var tag = document.getElementById("tag-label").value
+        document.getElementById("tag-label").value = ""
+
+        // Init tag called through this
+        parent.postMessage({
+            pluginMessage: {
+                type: "add-tag",
+                tag: tag,
+            }
+        }, "*")
+
+    }
+
+    function editTag(tagName) {
+        console.log("Edit", tagName)
+    }
+
+    function triggerTag(tagName) {
+        console.log("Trigger", tagName)
+
+    }
+
+    function initTagsList(tags) {
+        var tagsList = document.querySelector("#tags")
+
+        // Clear tagsList
+        tagsList.innerHTML = ""
+
+        for (const tag of tags) {
+            tagsList.insertAdjacentHTML("beforeend",
+                `<div class='tag'>
+                    <div class='title' onclick="triggerTag('${tag}')"">${tag}</div>
+                    <button class="edit" onclick="editTag('${tag}')">\u270e</button>
+                </div>`
+            );
+        }
+    }
+
+    // Catch messages pushed from code.js
+    onmessage = (event) => {
+        console.log("Got this from the plugin code:", event.data.pluginMessage.tags)
+        if (event.data.pluginMessage.msg === "init") {
+            var tags = event.data.pluginMessage.tags
+            initTagsList(tags)
+
+        }
+
+    }
+</script>
+
+<style>
+    * :focus {
+        outline-color: blueviolet;
+    }
+
+    #tag-label {
+        height: 36px;
+        padding-left: 8px;
+        font-family: Arial;
+        font-size: 16px;
+        /* font-weight: 600; */
+        font-style: normal;
+        width: 100%;
+
+    }
+
+    #add-tag {
+        height: 36px;
+        font-family: Arial;
+        font-size: 16px;
+        /* font-weight: 600; */
+        font-style: normal;
+        background-color: black;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        padding: 0 16px;
+        white-space: nowrap;
+        cursor: pointer;
+
+    }
+
+    .input-row {
+        display: flex;
+        gap: 8px;
+        width: 100%;
+        align-items: stretch;
+    }
+
+    #tags {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 8px;
+        width: 100%;
+        align-items: center;
+        margin-top: 24px;
+    }
+
+    .edit,
+    .title {
+        cursor: pointer;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+    }
+
+    .edit {
+        font-size: 24px;
+        color: white;
+        background-color: blueviolet;
+
+        height: 36px;
+        width: 36px;
+
+        border-radius: 4px 0 0 4px;
+        border: none;
+
+        /* Reverse button so the pencil faces text */
+        -moz-transform: scale(-1, 1);
+        -webkit-transform: scale(-1, 1);
+        -o-transform: scale(-1, 1);
+        -ms-transform: scale(-1, 1);
+        transform: scale(-1, 1);
+
+    }
+
+    .edit:hover,
+    .title:hover {
+        background-color: purple;
+    }
+
+    .tag {
+        display: flex;
+        align-items: center;
+
+        /* background-color: blueviolet; */
+        /* color: white; */
+
+        /* padding-left: 8px; */
+        /* height: 36px; */
+        /* border-radius: 4px; */
+    }
+
+    .title {
+        font-family: Arial;
+        font-size: 16px;
+        /* font-weight: 600; */
+        font-style: normal;
+        height: 36px;
+
+        display: flex;
+        align-items: center;
+
+        background-color: blueviolet;
+        color: white;
+
+        padding: 0 8px;
+        height: 36px;
+        border-radius: 4px 0 0 4px;
+
+    }
+</style>
