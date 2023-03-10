@@ -5,6 +5,7 @@
             Add tag
         </button>
     </div>
+    <p id="error-message"></p>
 
     <div id="tags">
 
@@ -22,13 +23,17 @@
     // Add Tag through input
     document.getElementById("add-tag").onclick = () => {
         var tag = document.getElementById("tag-label").value
-        document.getElementById("tag-label").value = ""
+        var errorMsg = document.getElementById("error-message")
 
-        // Init tag called through this
+        // Check if valid (non-empty, stickies selected)
+        if (tag.trim() === "") {
+            errorMsg.innerHTML = "A tag cannot be empty"
+            return
+        }
+
         parent.postMessage({
             pluginMessage: {
-                type: "add-tag",
-                tag: tag,
+                type: "check-selected",
             }
         }, "*")
 
@@ -51,7 +56,7 @@
 
         for (const tag of tags) {
             tagsList.insertAdjacentHTML("beforeend",
-                `<div class='tag'>
+                `<div class='tag disabled'>
                     <div class='title' onclick="triggerTag('${tag}')"">${tag}</div>
                     <button class="edit" onclick="editTag('${tag}')">\u270e</button>
                 </div>`
@@ -61,11 +66,29 @@
 
     // Catch messages pushed from code.js
     onmessage = (event) => {
-        console.log("Got this from the plugin code:", event.data.pluginMessage.tags)
         if (event.data.pluginMessage.msg === "init") {
             var tags = event.data.pluginMessage.tags
             initTagsList(tags)
 
+        } else if (event.data.pluginMessage.msg === "valid") {
+            var tag = document.getElementById("tag-label").value
+            var errorMsg = document.getElementById("error-message")
+
+            parent.postMessage({
+                pluginMessage: {
+                    type: "add-tag",
+                    tag: tag,
+                }
+            }, "*")
+
+            document.getElementById("tag-label").value = ""
+            errorMsg.innerHTML = ""
+
+
+        } else if (event.data.pluginMessage.msg === "invalid") {
+            var errorMsg = document.getElementById("error-message")
+
+            errorMsg.innerHTML = "You must select a sticky note before you add a tag"
         }
 
     }
@@ -151,7 +174,9 @@
 
     .edit:hover,
     .title:hover {
-        background-color: purple;
+        /* background-color: purple; */
+        filter: brightness(115%);
+
     }
 
     .tag {
@@ -183,5 +208,23 @@
         height: 36px;
         border-radius: 4px 0 0 4px;
 
+    }
+
+    .disabled {
+        filter: brightness(60%);
+        /* filter: contrast(170%); */
+        /* background-color: rgb(144, 144, 144); */
+        /* color: black; */
+
+        /* pointer-events: none; */
+    }
+
+    #error-message {
+        margin-top: 8px;
+        font-family: Arial;
+        font-size: 12px;
+        font-weight: 600;
+        font-style: normal;
+        color: red;
     }
 </style>
