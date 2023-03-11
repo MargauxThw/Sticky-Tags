@@ -1,7 +1,7 @@
 var back = " #]"
 var front = "[# "
 var tagsWithStates
-var mode
+
 
 function resetTags() {
     tagsWithStates = getTagsStates(getActiveTags(), getSelectedStickies(figma.currentPage.selection))
@@ -9,7 +9,7 @@ function resetTags() {
 }
 
 
-figma.on("selectionchange", () => { resetTags()})
+figma.on("selectionchange", () => { resetTags() })
 
 
 const loadFonts = async () => {
@@ -30,9 +30,10 @@ figma.showUI(
 resetTags()
 
 
-function getActiveTags() {
-    console.log("Getting active tags!")
-    let children = figma.currentPage.children
+function getActiveTags(children) {
+    if (children == null) {
+        children = figma.currentPage.children
+    }
     let tags = []
 
     for (let i = 0; i < children.length; i++) {
@@ -72,6 +73,7 @@ function getTagsStates(activeTags, nodes) {
                 break
             }
         }
+
         tagsWithStates.push({ tagName: activeTags[i], onSticky: onSticky })
     }
     return tagsWithStates
@@ -83,13 +85,10 @@ function getAncestorStickies(parent, ancestors) {
     for (let i = 0; i < parent.children.length; i++) {
         if (parent.children[i].type === "STICKY") {
             ancestors.push(parent.children[i])
-
         } else if (parent.children[i].type === "SECTION") {
             ancestors = getAncestorStickies(parent.children[i], ancestors)
-
         }
     }
-
     return ancestors
 }
 
@@ -108,7 +107,6 @@ function getSelectedStickies(children) {
             }
         } else if (children[i].type === "STICKY") {
             nodes.push(children[i])
-
         }
     }
     return nodes
@@ -181,8 +179,73 @@ figma.ui.onmessage = msg => {
             figma.ui.postMessage({ msg: message })
             break
 
-        case 'change-mode':
-            mode = msg.mode
+        case 'section-tag':
+            let tags = getActiveTags(figma.currentPage.selection)
+            let selected = getSelectedStickies(figma.currentPage.selection)
+
+            let sections = []
+
+            // Fill sections with title and Sticky Nodes
+            for (let i = 0; i < tags.length; i++) {
+                let section = { title: tags[i], nodes: [] }
+                for (let j = 0; j < selected.length; j++) {
+                    console.log(selected[j].text.characters)
+                    if (selected[j].text.characters.includes(`${front}${tags[i]}${back}`)) {
+                        console.log("YES")
+                        section.nodes.push(selected[j])
+                        
+                    }
+                }
+                sections.push(section)
+            }
+
+
+            let realSections = []
+            let x
+            let y
+            
+            for (let i = 0; i < sections.length; i++) {
+                let section = figma.createSection()
+                section.name = sections[i].title
+
+                if (i == 0) {
+                    x = section.x
+                    y = section.y
+                } else {
+                    section.x = x
+                    section.y = y
+                }
+
+                let numChildren = sections[i].nodes.length
+                let childrenWidth = 0
+                let maxHeight = 0
+
+                for (let j = 0; j < sections[i].nodes.length; j++) {
+                    let sticky = sections[i].nodes[j].clone()
+
+                    sticky.x = childrenWidth + ((j + 1) * 60)
+                    sticky.y = y + 60
+
+                    maxHeight = sticky.height > maxHeight ? sticky.height : maxHeight
+
+                    childrenWidth = childrenWidth + sticky.width
+                    section.appendChild(sticky)
+                }
+
+                section.resizeWithoutConstraints(childrenWidth + ((numChildren + 1) * 60), maxHeight + 120)
+
+                if (maxHeight == 0) {
+                    section.resizeWithoutConstraints(240 + 120, 240 + 120)
+                }
+
+                realSections.push(section)
+                x = x + childrenWidth + ((numChildren + 1) * 60) + 240
+
+            }
+
+            figma.currentPage.selection = realSections
+            figma.viewport.scrollAndZoomIntoView(realSections)
+
             break
 
 

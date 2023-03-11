@@ -22,9 +22,11 @@
 
     <div id="tags">
     </div>
+    <h2>Create Sections:</h2>
     <div class="button-row" id="bottom-buttons">
-        <button id="section-all" class="primary">Section all Sticky Notes by tag</button>
-        <button id="section-selected" class="primary">Section your selected Sticky Notes by tag</button>
+        <!-- <button id="section-all" class="primary">Section <b>all</b> Sticky Notes by tag</button> -->
+        <button id="section-tags" class="primary" onclick="sectionByTag()">Section selected Sticky Notes <b>by
+                tag</b></button>
     </div>
 </div>
 
@@ -61,6 +63,14 @@
             }
         }, "*")
 
+    }
+
+    function sectionByTag() {
+        parent.postMessage({
+            pluginMessage: {
+                type: "section-tag",
+            }
+        }, "*")
     }
 
     // function selectMode(id) {
