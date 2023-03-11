@@ -39,11 +39,11 @@
             return
         }
 
-            parent.postMessage({
-                pluginMessage: {
-                    type: "check-selected",
-                }
-            }, "*")
+        parent.postMessage({
+            pluginMessage: {
+                type: "check-selected",
+            }
+        }, "*")
 
     }
 
@@ -51,8 +51,19 @@
         console.log("Edit", tagName)
     }
 
-    function triggerTag(tagName) {
+    function triggerTag(tagName, onSticky) {
         console.log("Trigger", tagName)
+        if (onSticky) {
+
+        } else {
+            parent.postMessage({
+                pluginMessage: {
+                    type: "add-tag",
+                    tag: tagName,
+                }
+            }, "*")
+        }
+
 
     }
 
@@ -68,7 +79,7 @@
 
             tagsList.insertAdjacentHTML("beforeend",
                 `<div class='tag ${tag.onSticky ? '' : 'disabled'}'>
-                    <div class='title' onclick="triggerTag('${tag.tagName}')"">${tag.tagName}</div>
+                    <div class='title' onclick="triggerTag('${tag.tagName}', ${tag.onSticky})"">${tag.tagName}</div>
                     <button class="edit" onclick="editTag('${tag.tagName}')">\u270e</button>
                 </div>`
             );

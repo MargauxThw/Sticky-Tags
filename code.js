@@ -129,12 +129,9 @@ figma.ui.onmessage = msg => {
     console.log("ON MESSAGE")
 
     var children
-    var tag
-
 
     switch (msg.type) {
         case 'add-tag':
-            tag = msg.tag
             children = figma.currentPage.selection
             const nodes = getSelectedStickies(children)
 
@@ -148,7 +145,7 @@ figma.ui.onmessage = msg => {
 
                     if (curr.includes(tag)) {
                         // If tag is already on Note, don't duplicate
-                        break
+                        continue
                     } else if (curr.includes(front) && curr.includes(back)) {
                         // Find last tag, place '\n + tag' after that
                         let lastOpen = curr.lastIndexOf(front)
@@ -167,20 +164,15 @@ figma.ui.onmessage = msg => {
 
                 }
 
-                console.log("DONE", children)
-
-
                 var tagsWithStates = getTagsStates(getActiveTags(), getSelectedStickies(figma.currentPage.selection))
-                // TODO: Make this not completely rewrite every time??
                 figma.ui.postMessage({ tags: tagsWithStates, msg: "init" })
 
-
-                console.log(nodes)
-                figma.currentPage.selection = nodes
-                figma.viewport.scrollAndZoomIntoView(nodes)
+                // figma.currentPage.selection = nodes
+                // figma.viewport.scrollAndZoomIntoView(nodes)
             })
 
             break
+
 
         case 'check-selected':
             let message = "invalid"
