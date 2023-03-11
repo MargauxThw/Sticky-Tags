@@ -58,6 +58,12 @@ function getTagsStates(activeTags, nodes) {
     var tagsWithStates = []
     for (let i = 0; i < activeTags.length; i++) {
         let onSticky = true
+
+        // Tags should all be unselected when no stickies are selected
+        if (nodes.length == 0) {
+            onSticky = false
+        }
+
         for (let j = 0; j < nodes.length; j++) {
             if (!nodes[j].text.characters.includes(`${front}${activeTags[i]}${back}`)) {
                 onSticky = false
@@ -192,18 +198,5 @@ figma.ui.onmessage = msg => {
         default:
             break
     }
-
-    // if (msg.type === 'add-tag') {
-    // }
-    // // LEGACY
-    // else if (msg.type === 'apply-all') {
-    //     children = figma.currentPage.children
-    // } else if (msg.type === 'apply-selected') {
-    //     children = figma.currentPage.selection
-    // }
-
-
-
-
 
 };
