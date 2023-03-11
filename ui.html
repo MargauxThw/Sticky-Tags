@@ -13,6 +13,9 @@
 </div>
 
 <script>
+    var back = " #]"
+    var front = "[# "
+
     // Press enter to trigger 'Add tag' button'
     document.getElementById("tag-label").addEventListener("keypress", function (event) {
         if (event.key === "Enter") {
@@ -31,11 +34,16 @@
             return
         }
 
-        parent.postMessage({
-            pluginMessage: {
-                type: "check-selected",
-            }
-        }, "*")
+        if (tag.includes(front) || tag.includes(back)) {
+            errorMsg.innerHTML = `A tag cannot include special characters '${front}' or '${back}'`
+            return
+        }
+
+            parent.postMessage({
+                pluginMessage: {
+                    type: "check-selected",
+                }
+            }, "*")
 
     }
 
@@ -54,11 +62,14 @@
         // Clear tagsList
         tagsList.innerHTML = ""
 
+        console.log(tags)
+
         for (const tag of tags) {
+
             tagsList.insertAdjacentHTML("beforeend",
-                `<div class='tag disabled'>
-                    <div class='title' onclick="triggerTag('${tag}')"">${tag}</div>
-                    <button class="edit" onclick="editTag('${tag}')">\u270e</button>
+                `<div class='tag ${tag.onSticky ? '' : 'disabled'}'>
+                    <div class='title' onclick="triggerTag('${tag.tagName}')"">${tag.tagName}</div>
+                    <button class="edit" onclick="editTag('${tag.tagName}')">\u270e</button>
                 </div>`
             );
         }
@@ -87,8 +98,8 @@
 
         } else if (event.data.pluginMessage.msg === "invalid") {
             var errorMsg = document.getElementById("error-message")
-
             errorMsg.innerHTML = "You must select a sticky note before you add a tag"
+
         }
 
     }

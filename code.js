@@ -1,8 +1,6 @@
 var back = " #]"
 var front = "[# "
 
-
-
 figma.showUI(
     __html__, {
     width: 350,
@@ -12,24 +10,11 @@ figma.showUI(
 )
 
 var activeTags = getActiveTags()
-figma.ui.postMessage({ tags: activeTags, msg: "init" })
+var tagsWithStates = getTagsStates(activeTags, getSelectedStickies(figma.currentPage.selection))
 
-// figma.ui.postMessage({ tags: activeTags, msg: "init" })
+// TODO: Make this not completely rewrite every time??
+figma.ui.postMessage({ tags: tagsWithStates, msg: "init" })
 
-// Object.defineProperty(window, activeTags, {
-//     get: function () {
-//         console.log('get!');
-//         return activeTags;
-//     },
-//     set: function (value) {
-//         console.log('set!');
-//         value_of_abc = value;
-//         figma.ui.postMessage({ tags: activeTags, msg: "init" })
-
-//     }
-// });
-
-// var activeTags = getActiveTags()
 
 
 
@@ -68,12 +53,25 @@ function getActiveTags() {
     return [...new Set(tags)]
 }
 
-// function displayActiveTags() {
-//     var tagsList = document.querySelector("#tags");
-//     // const tagsList = document.getElementById('tags')
+function getTagsStates(activeTags, nodes) {
+    // {tagName: 'pain point', onSticky: true}
+    var tagsWithStates = []
+    for (let i = 0; i < activeTags.length; i++) {
+        let onSticky = true
+        for (let j = 0; j < nodes.length; j++) {
+            if (!nodes[j].text.characters.includes(`${front}${activeTags[i]}${back}`)) {
+                onSticky = false
+                break
+            }
+        }
 
-//     tagsList.insertAdjacentHTML("beforeend", '<li id="grapes">Grapes</li>');
-// }
+        tagsWithStates.push({ tagName: activeTags[i], onSticky: onSticky })
+    }
+
+    return tagsWithStates
+
+}
+
 
 
 function getAncestorStickies(parent, ancestors) {
@@ -112,8 +110,17 @@ function getSelectedStickies(children) {
     return nodes
 }
 
+figma.on("selectionchange", () => {
+    var tagsWithStates = getTagsStates(getActiveTags(), getSelectedStickies(figma.currentPage.selection))
+
+    // TODO: Make this not completely rewrite every time??
+    figma.ui.postMessage({ tags: tagsWithStates, msg: "init" })
+
+})
+
 
 figma.ui.onmessage = msg => {
+    console.log("ON MESSAGE")
 
     var children
     var tag
@@ -156,8 +163,10 @@ figma.ui.onmessage = msg => {
 
                 console.log("DONE", children)
 
-                activeTags = getActiveTags()
-                figma.ui.postMessage({ tags: activeTags, msg: "init" })
+
+                var tagsWithStates = getTagsStates(getActiveTags(), getSelectedStickies(figma.currentPage.selection))
+                // TODO: Make this not completely rewrite every time??
+                figma.ui.postMessage({ tags: tagsWithStates, msg: "init" })
 
 
                 console.log(nodes)
