@@ -1,14 +1,30 @@
 <div>
-    <div class="input-row">
+    <!-- <div id="top-row">
+        Mode:
+        <button class="mode active" id="mode-1" onclick="selectMode('mode-1')">
+            tag
+        </button>
+        <button class="mode" id="mode-2" onclick="selectMode('mode-2')">
+            select
+        </button>
+        <button class="mode" id="mode-3" onclick="selectMode('mode-3')">
+            section
+        </button>
+    </div> -->
+    <div id="input-row">
         <input id="tag-label" />
         <button id="add-tag">
             Add tag
         </button>
     </div>
     <p id="error-message"></p>
+    <h2>Tags:</h2>
 
     <div id="tags">
-
+    </div>
+    <div class="button-row" id="bottom-buttons">
+        <button id="section-all" class="primary">Section all Sticky Notes by tag</button>
+        <button id="section-selected" class="primary">Section your selected Sticky Notes by tag</button>
     </div>
 </div>
 
@@ -47,9 +63,22 @@
 
     }
 
-    function editTag(tagName) {
-        console.log("Edit", tagName)
-    }
+    // function selectMode(id) {
+    //     if (mode !== id) {
+    //         document.getElementById('mode-1').classList.remove('active')
+    //         document.getElementById('mode-2').classList.remove('active')
+    //         document.getElementById('mode-3').classList.remove('active')
+    //         document.getElementById(id).classList.add('active')
+    //         mode = id
+    //         parent.postMessage({
+    //             pluginMessage: {
+    //                 type: "change-mode",
+    //                 mode: id,
+    //             }
+    //         }, "*")
+    //     }
+    // }
+
 
     function triggerTag(tagName, onSticky) {
         console.log("Trigger", tagName)
@@ -69,9 +98,8 @@
                 }
             }, "*")
         }
-
-
     }
+
 
     function initTagsList(tags) {
         var tagsList = document.querySelector("#tags")
@@ -79,17 +107,15 @@
         // Clear tagsList
         tagsList.innerHTML = ""
 
-        console.log(tags)
-
+        // Tag mode
         for (const tag of tags) {
-
             tagsList.insertAdjacentHTML("beforeend",
                 `<div class='tag ${tag.onSticky ? '' : 'disabled'}'>
                     <div class='title' onclick="triggerTag('${tag.tagName}', ${tag.onSticky})"">${tag.tagName}</div>
-                    <button class="edit" onclick="editTag('${tag.tagName}')">\u270e</button>
                 </div>`
             );
         }
+
     }
 
     // Catch messages pushed from code.js
@@ -112,7 +138,6 @@
             document.getElementById("tag-label").value = ""
             errorMsg.innerHTML = ""
 
-
         } else if (event.data.pluginMessage.msg === "invalid") {
             var errorMsg = document.getElementById("error-message")
             errorMsg.innerHTML = "You must select a sticky note before you add a tag"
@@ -122,9 +147,26 @@
     }
 </script>
 
+
 <style>
+    /* GLOBAL */
+
     * :focus {
         outline-color: blueviolet;
+    }
+
+    body {
+        max-width: 100%;
+        background-color: #F6F7FC;
+
+    }
+
+    /* TOP SECTION */
+
+    h2 {
+        font-family: Arial;
+        font-size: 20px;
+        font-style: normal;
     }
 
     #tag-label {
@@ -132,17 +174,16 @@
         padding-left: 8px;
         font-family: Arial;
         font-size: 16px;
-        /* font-weight: 600; */
         font-style: normal;
         width: 100%;
 
     }
 
-    #add-tag {
+    #add-tag,
+    .primary {
         height: 36px;
         font-family: Arial;
         font-size: 16px;
-        /* font-weight: 600; */
         font-style: normal;
         background-color: black;
         color: white;
@@ -154,24 +195,47 @@
 
     }
 
-    .input-row {
+    .primary {
+        width: 100%;
+
+    }
+
+    #input-row {
         display: flex;
         gap: 8px;
         width: 100%;
         align-items: stretch;
     }
 
-    #tags {
+    #error-message {
+        margin-top: 12px;
+        font-family: Arial;
+        font-size: 12px;
+        font-weight: 600;
+        font-style: normal;
+        color: red;
+    }
+
+    /* TAGS BLOCK */
+
+    #tags,
+    .button-row {
         display: flex;
         flex-direction: row;
         flex-wrap: wrap;
         gap: 8px;
-        width: 100%;
+        max-width: 100%;
         align-items: center;
-        margin-top: 24px;
+
+        padding: 12px 0;
+        border-top: 1px solid black;
     }
 
-    .edit,
+    #tags {
+        min-height: 36px;
+    }
+
+
     .title {
         cursor: pointer;
         -webkit-user-select: none;
@@ -180,29 +244,8 @@
         user-select: none;
     }
 
-    .edit {
-        font-size: 24px;
-        color: white;
-        background-color: blueviolet;
 
-        height: 36px;
-        width: 36px;
-
-        border-radius: 4px 0 0 4px;
-        border: none;
-
-        /* Reverse button so the pencil faces text */
-        -moz-transform: scale(-1, 1);
-        -webkit-transform: scale(-1, 1);
-        -o-transform: scale(-1, 1);
-        -ms-transform: scale(-1, 1);
-        transform: scale(-1, 1);
-
-    }
-
-    .edit:hover,
     .title:hover {
-        /* background-color: purple; */
         filter: brightness(115%);
 
     }
@@ -210,19 +253,12 @@
     .tag {
         display: flex;
         align-items: center;
-
-        /* background-color: blueviolet; */
-        /* color: white; */
-
-        /* padding-left: 8px; */
-        /* height: 36px; */
-        /* border-radius: 4px; */
+        max-width: 100%;
     }
 
     .title {
         font-family: Arial;
         font-size: 16px;
-        /* font-weight: 600; */
         font-style: normal;
         height: 36px;
 
@@ -234,25 +270,37 @@
 
         padding: 0 8px;
         height: 36px;
-        border-radius: 4px 0 0 4px;
+        border-radius: 4px;
+
+        white-space: nowrap;
+        max-width: 100%;
+        overflow: scroll;
+        text-overflow: ellipsis;
 
     }
 
     .disabled {
-        filter: brightness(60%);
-        /* filter: contrast(170%); */
-        /* background-color: rgb(144, 144, 144); */
-        /* color: black; */
-
-        /* pointer-events: none; */
+        filter: brightness(70%);
     }
 
-    #error-message {
-        margin-top: 8px;
-        font-family: Arial;
-        font-size: 12px;
+    /* TOP ROW */
+    #top-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding-bottom: 8px;
+        margin-top: 0;
+        /* border-bottom: 1px solid black; */
+        margin-bottom: 12px;
+
         font-weight: 600;
+
+    }
+
+    #top-row {
+        font-family: Arial;
+        font-size: 16px;
         font-style: normal;
-        color: red;
+        color: black;
     }
 </style>

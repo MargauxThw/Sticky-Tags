@@ -1,5 +1,23 @@
 var back = " #]"
 var front = "[# "
+var tagsWithStates
+var mode
+
+function resetTags() {
+    tagsWithStates = getTagsStates(getActiveTags(), getSelectedStickies(figma.currentPage.selection))
+    figma.ui.postMessage({ tags: tagsWithStates, msg: "init" })
+}
+
+
+figma.on("selectionchange", () => { resetTags()})
+
+
+const loadFonts = async () => {
+    await figma.loadFontAsync({ family: "Inter", style: "Medium" })
+    await figma.loadFontAsync({ family: "Inter", style: "Bold" })
+    await figma.loadFontAsync({ family: "Work Sans", style: "Bold" })
+}
+
 
 figma.showUI(
     __html__, {
@@ -9,26 +27,9 @@ figma.showUI(
 },
 )
 
-var activeTags = getActiveTags()
-var tagsWithStates = getTagsStates(activeTags, getSelectedStickies(figma.currentPage.selection))
-
-// TODO: Make this not completely rewrite every time??
-figma.ui.postMessage({ tags: tagsWithStates, msg: "init" })
+resetTags()
 
 
-
-
-const loadFonts = async () => {
-
-    await figma.loadFontAsync({ family: "Inter", style: "Medium" })
-    await figma.loadFontAsync({ family: "Inter", style: "Bold" })
-    await figma.loadFontAsync({ family: "Work Sans", style: "Bold" })
-
-    console.log("Awaiting the fonts.")
-
-}
-
-// Print tags on all stickies
 function getActiveTags() {
     console.log("Getting active tags!")
     let children = figma.currentPage.children
@@ -45,16 +46,17 @@ function getActiveTags() {
             }
         } else if (children[i].type === "STICKY") {
             let temp_tags = children[i].text.characters.split(front).filter(tag => tag.indexOf(back) > 0).map(tag => tag.split(back)[0].trim())
-            // let temp_tags = children[i].text.characters.split(front).filter(tag => tag.endsWith(back) && tag.length > 3).map(tag => tag.slice(0, -3))
             tags.push(...temp_tags)
         }
     }
 
-    return [...new Set(tags)]
+    return [...new Set(tags)].sort(function (a, b) {
+        return a.toLowerCase().localeCompare(b.toLowerCase());
+    })
 }
 
+
 function getTagsStates(activeTags, nodes) {
-    // {tagName: 'pain point', onSticky: true}
     var tagsWithStates = []
     for (let i = 0; i < activeTags.length; i++) {
         let onSticky = true
@@ -70,14 +72,10 @@ function getTagsStates(activeTags, nodes) {
                 break
             }
         }
-
         tagsWithStates.push({ tagName: activeTags[i], onSticky: onSticky })
     }
-
     return tagsWithStates
-
 }
-
 
 
 function getAncestorStickies(parent, ancestors) {
@@ -94,6 +92,7 @@ function getAncestorStickies(parent, ancestors) {
 
     return ancestors
 }
+
 
 function getSelectedStickies(children) {
     var nodes = []
@@ -112,32 +111,16 @@ function getSelectedStickies(children) {
 
         }
     }
-
     return nodes
 }
 
-function resetTags() {
-    var tagsWithStates = getTagsStates(getActiveTags(), getSelectedStickies(figma.currentPage.selection))
-    figma.ui.postMessage({ tags: tagsWithStates, msg: "init" })
-}
-
-figma.on("selectionchange", () => {
-    resetTags()
-
-})
-
 
 figma.ui.onmessage = msg => {
-    console.log("ON MESSAGE")
-
     var children = figma.currentPage.selection
     const nodes = getSelectedStickies(children)
 
     switch (msg.type) {
         case 'add-tag':
-
-
-
             loadFonts().then(() => {
                 for (let i = 0; i < nodes.length; i++) {
                     // Add after a \n\n from last character
@@ -152,7 +135,7 @@ figma.ui.onmessage = msg => {
                         // Find last tag, place '\n + tag' after that
                         let lastOpen = curr.lastIndexOf(front)
                         let nextClose = curr.indexOf(back, lastOpen) + 3
-                        nodes[i].text.characters = [curr.slice(0, nextClose), tag, curr.slice(nextClose)].join('');
+                        nodes[i].text.characters = [curr.slice(0, nextClose), '\n', tag, curr.slice(nextClose)].join('');
 
                     } else if (curr.endsWith("\n\n")) {
                         nodes[i].text.characters = `${curr}${tag}`
@@ -167,43 +150,39 @@ figma.ui.onmessage = msg => {
                 }
 
                 resetTags()
-
                 // figma.currentPage.selection = nodes
                 // figma.viewport.scrollAndZoomIntoView(nodes)
             })
-
             break
 
 
         case 'remove-tag':
             let tag = `${front}${msg.tag.trim()}${back}`
-
+            let longTag = `\n${tag}`
 
             loadFonts().then(() => {
                 for (let i = 0; i < nodes.length; i++) {
                     while (nodes[i].text.characters.includes(tag)) {
+                        nodes[i].text.characters = nodes[i].text.characters.replace(longTag, '')
                         nodes[i].text.characters = nodes[i].text.characters.replace(tag, '')
                     }
-
                 }
-
                 resetTags()
-
             })
-
-
             break
 
 
         case 'check-selected':
             let message = "invalid"
-
             if (getSelectedStickies(children).length > 0) {
                 message = "valid"
             }
 
             figma.ui.postMessage({ msg: message })
+            break
 
+        case 'change-mode':
+            mode = msg.mode
             break
 
 
