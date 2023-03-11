@@ -116,11 +116,13 @@ function getSelectedStickies(children) {
     return nodes
 }
 
-figma.on("selectionchange", () => {
+function resetTags() {
     var tagsWithStates = getTagsStates(getActiveTags(), getSelectedStickies(figma.currentPage.selection))
-
-    // TODO: Make this not completely rewrite every time??
     figma.ui.postMessage({ tags: tagsWithStates, msg: "init" })
+}
+
+figma.on("selectionchange", () => {
+    resetTags()
 
 })
 
@@ -128,12 +130,12 @@ figma.on("selectionchange", () => {
 figma.ui.onmessage = msg => {
     console.log("ON MESSAGE")
 
-    var children
+    var children = figma.currentPage.selection
+    const nodes = getSelectedStickies(children)
 
     switch (msg.type) {
         case 'add-tag':
-            children = figma.currentPage.selection
-            const nodes = getSelectedStickies(children)
+
 
 
             loadFonts().then(() => {
@@ -164,8 +166,7 @@ figma.ui.onmessage = msg => {
 
                 }
 
-                var tagsWithStates = getTagsStates(getActiveTags(), getSelectedStickies(figma.currentPage.selection))
-                figma.ui.postMessage({ tags: tagsWithStates, msg: "init" })
+                resetTags()
 
                 // figma.currentPage.selection = nodes
                 // figma.viewport.scrollAndZoomIntoView(nodes)
@@ -174,9 +175,28 @@ figma.ui.onmessage = msg => {
             break
 
 
+        case 'remove-tag':
+            let tag = `${front}${msg.tag.trim()}${back}`
+
+
+            loadFonts().then(() => {
+                for (let i = 0; i < nodes.length; i++) {
+                    while (nodes[i].text.characters.includes(tag)) {
+                        nodes[i].text.characters = nodes[i].text.characters.replace(tag, '')
+                    }
+
+                }
+
+                resetTags()
+
+            })
+
+
+            break
+
+
         case 'check-selected':
             let message = "invalid"
-            children = figma.currentPage.selection
 
             if (getSelectedStickies(children).length > 0) {
                 message = "valid"

@@ -54,6 +54,12 @@
     function triggerTag(tagName, onSticky) {
         console.log("Trigger", tagName)
         if (onSticky) {
+            parent.postMessage({
+                pluginMessage: {
+                    type: "remove-tag",
+                    tag: tagName,
+                }
+            }, "*")
 
         } else {
             parent.postMessage({
