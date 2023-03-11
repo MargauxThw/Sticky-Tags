@@ -183,23 +183,35 @@ figma.ui.onmessage = msg => {
             let tags = getActiveTags(figma.currentPage.selection)
             let selected = getSelectedStickies(figma.currentPage.selection)
 
+
+
             let sections = []
 
             // Fill sections with title and Sticky Nodes
             for (let i = 0; i < tags.length; i++) {
                 let section = { title: tags[i], nodes: [] }
                 for (let j = 0; j < selected.length; j++) {
-                    console.log(selected[j].text.characters)
                     if (selected[j].text.characters.includes(`${front}${tags[i]}${back}`)) {
-                        console.log("YES")
                         section.nodes.push(selected[j])
-                        
                     }
                 }
                 sections.push(section)
             }
 
+            // Add no tag section
+            let noTags = { title: 'no tags', nodes: [] }
+            for (let i = 0; i < selected.length; i++) {
+                let temp_tags = selected[i].text.characters.split(front).filter(tag => tag.indexOf(back) > 0).map(tag => tag.split(back)[0].trim())
+                if (temp_tags.length == 0) {
+                    noTags.nodes.push(selected[i])
+                }
+            }
 
+            if (noTags.nodes.length > 0) {
+                sections.push(noTags)
+            }
+
+            
             let realSections = []
             let x
             let y
