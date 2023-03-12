@@ -34,10 +34,8 @@
 <script>
     var back = " #]"
     var front = "[# "
-
     document.getElementById("start").value = front
     document.getElementById("end").value = back
-
     document.getElementById("current-symbols").innerHTML = `Current symbols: '${front}' and '${back}'`
 
     document.getElementById("save-symbols").addEventListener("click", function () {
@@ -112,22 +110,6 @@
             }
         }, "*")
     }
-
-    // function selectMode(id) {
-    //     if (mode !== id) {
-    //         document.getElementById('mode-1').classList.remove('active')
-    //         document.getElementById('mode-2').classList.remove('active')
-    //         document.getElementById('mode-3').classList.remove('active')
-    //         document.getElementById(id).classList.add('active')
-    //         mode = id
-    //         parent.postMessage({
-    //             pluginMessage: {
-    //                 type: "change-mode",
-    //                 mode: id,
-    //             }
-    //         }, "*")
-    //     }
-    // }
 
 
     function triggerTag(tagName, onSticky) {
@@ -227,7 +209,7 @@
 
     h2,
     label {
-        font-family: Arial;
+        font-family: Whyte, sans-serif;
         font-size: 18px;
         font-style: normal;
         margin-bottom: 4px;
@@ -237,10 +219,14 @@
     input {
         height: 36px;
         padding-left: 8px;
-        font-family: Arial;
+        /* font-family: Arial; */
+        font-family: Whyte, sans-serif;
+
         font-size: 16px;
         font-style: normal;
         width: 100%;
+        border: 2px solid black;
+        border-radius: 4px;
 
     }
 
@@ -248,7 +234,9 @@
     .primary,
     #save-symbols {
         height: 36px;
-        font-family: Arial;
+        font-family: Whyte, sans-serif;
+        font-weight: 700;
+        /* font-family: Arial; */
         font-size: 16px;
         font-style: normal;
         background-color: black;
@@ -294,7 +282,7 @@
         align-items: center;
 
         padding: 12px 0;
-        border-top: 1px solid black;
+        border-top: 2px solid black;
     }
 
     #tags {
@@ -313,7 +301,6 @@
 
     .title:hover {
         filter: brightness(115%);
-
     }
 
     .tag {
@@ -332,6 +319,7 @@
         align-items: center;
 
         background-color: blueviolet;
+        border: 2px solid rgb(114, 27, 196);
         color: white;
 
         padding: 0 8px;
@@ -379,7 +367,7 @@
         padding: 0 8px;
         width: 100%;
 
-        border-top: 1px solid black;
+        border-top: 2px solid black;
         background-color: #edf0ff;
 
     }
@@ -401,7 +389,7 @@
 
         margin-left: -8px;
 
-        font-family: Arial;
+        font-family: Whyte, sans-serif;
         font-size: 16px;
         font-weight: 600;
         font-style: normal;
@@ -443,7 +431,7 @@
     }
 
     #current-symbols {
-        font-family: Arial;
+        font-family: Whyte, sans-serif;
         font-size: 12px;
         font-weight: 600;
         font-style: normal;

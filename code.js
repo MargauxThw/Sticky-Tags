@@ -12,11 +12,11 @@ var front = figma.root.getPluginData("front") === '' ? " #]" : figma.root.getPlu
 figma.ui.postMessage({ front: front, msg: "set-front" })
 figma.ui.postMessage({ back: back, msg: "set-back" })
 
-var tagsWithStates
 resetTags()
 
 figma.on("selectionchange", () => { resetTags() })
 
+var tagsWithStates
 
 function resetTags() {
     tagsWithStates = getTagsStates(getActiveTags(), getSelectedStickies(figma.currentPage.selection))
@@ -29,8 +29,6 @@ const loadFonts = async () => {
     await figma.loadFontAsync({ family: "Inter", style: "Bold" })
     await figma.loadFontAsync({ family: "Work Sans", style: "Bold" })
 }
-
-
 
 
 function getActiveTags(children) {
@@ -180,10 +178,10 @@ figma.ui.onmessage = msg => {
             figma.ui.postMessage({ msg: message })
             break
 
+
         case 'section-tag':
             let tags = getActiveTags(figma.currentPage.selection)
             let selected = getSelectedStickies(figma.currentPage.selection)
-
             let sections = []
 
             // Fill sections with title and Sticky Nodes
