@@ -28,11 +28,51 @@
         <button id="section-tags" class="primary" onclick="sectionByTag()">Section selected Sticky Notes <b>by
                 tag</b></button>
     </div>
+
+    <div id="symbols">
+        <button id="accordion">Edit tag symbols</button>
+        <div id="panel">
+            <!-- <p>current '[# ' and ' #]'</p> -->
+            <!-- <div> -->
+            <label>Start:</label> <input id="start" />
+            <label>End:</label> <input id="end" />
+            <button id="save-symbols">Save</button>
+            <!-- </div> -->
+        </div>
+    </div>
 </div>
 
 <script>
     var back = " #]"
     var front = "[# "
+
+    document.getElementById("start").value = front
+    document.getElementById("end").value = back
+
+    document.getElementById("save-symbols").addEventListener("click", function () {
+        front = document.getElementById("start").value
+        back = document.getElementById("end").value
+
+        parent.postMessage({
+            pluginMessage: {
+                type: "update-symbols",
+                front: front,
+                back: back,
+            }
+        }, "*")
+    });
+
+
+    document.getElementById("accordion").addEventListener("click", function () {
+        this.classList.toggle("active");
+        var panel = document.getElementById("panel");
+
+        if (panel.style.display !== "flex") {
+            panel.style.display = "flex";
+        } else {
+            panel.style.display = "none";
+        }
+    });
 
     // Press enter to trigger 'Add tag' button'
     document.getElementById("tag-label").addEventListener("keypress", function (event) {
@@ -91,7 +131,6 @@
 
 
     function triggerTag(tagName, onSticky) {
-        console.log("Trigger", tagName)
         if (onSticky) {
             parent.postMessage({
                 pluginMessage: {
@@ -152,6 +191,14 @@
             var errorMsg = document.getElementById("error-message")
             errorMsg.innerHTML = "You must select a sticky note before you add a tag"
 
+        } else if (event.data.pluginMessage.msg === "set-front") {
+            front = event.data.pluginMessage.front
+            document.getElementById("start").value = front
+
+        } else if (event.data.pluginMessage.msg === "set-back") {
+            back = event.data.pluginMessage.back
+            document.getElementById("end").value = back
+
         }
 
     }
@@ -168,19 +215,22 @@
     body {
         max-width: 100%;
         background-color: #F6F7FC;
+        margin-bottom: 86px;
 
     }
 
     /* TOP SECTION */
 
-    h2 {
+    h2,
+    label {
         font-family: Arial;
         font-size: 18px;
         font-style: normal;
         margin-bottom: 4px;
     }
 
-    #tag-label {
+    #tag-label,
+    input {
         height: 36px;
         padding-left: 8px;
         font-family: Arial;
@@ -191,7 +241,8 @@
     }
 
     #add-tag,
-    .primary {
+    .primary,
+    #save-symbols {
         height: 36px;
         font-family: Arial;
         font-size: 16px;
@@ -313,5 +364,71 @@
         font-size: 16px;
         font-style: normal;
         color: black;
+    }
+
+    /* SYMBOLS SECTION */
+
+    #symbols {
+        position: fixed;
+        bottom: 0;
+        margin-left: -8px;
+        padding: 0 8px;
+        width: 100%;
+
+        border-top: 1px solid black;
+        background-color: #edf0ff;
+
+    }
+
+    /* Style the buttons that are used to open and close the accordion panel */
+    #accordion {
+        background-color: #edf0ff;
+
+        color: black;
+
+        cursor: pointer;
+        padding: 8px;
+        padding-bottom: 6px;
+        width: 100%;
+        text-align: left;
+        border: none;
+        outline: none;
+        transition: 0.4s;
+
+        margin-left: -8px;
+
+        font-family: Arial;
+        font-size: 16px;
+        font-weight: 600;
+        font-style: normal;
+
+    }
+
+
+    #panel {
+        margin-left: -8px;
+        margin-right: 8px;
+
+        padding: 8px;
+
+        display: none;
+        overflow: hidden;
+
+        border-top: 1px solid black;
+        gap: 8px;
+        align-items: baseline
+    }
+
+
+    #accordion:after {
+        content: '\02795';
+        font-size: 13px;
+        color: black;
+        float: right;
+        margin-left: 5px;
+    }
+
+    #accordion.active:after {
+        content: "\2796";
     }
 </style>

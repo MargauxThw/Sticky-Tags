@@ -1,15 +1,27 @@
-var back = " #]"
-var front = "[# "
+figma.showUI(
+    __html__, {
+    width: 350,
+    height: 420,
+    title: "Sticky Tags"
+},
+)
+
+
+var back = figma.root.getPluginData("back") === '' ? " #]" : figma.root.getPluginData("back")
+var front = figma.root.getPluginData("front") === '' ? " #]" : figma.root.getPluginData("front")
+figma.ui.postMessage({ front: front, msg: "set-front" })
+figma.ui.postMessage({ back: back, msg: "set-back" })
+
 var tagsWithStates
+resetTags()
+
+figma.on("selectionchange", () => { resetTags() })
 
 
 function resetTags() {
     tagsWithStates = getTagsStates(getActiveTags(), getSelectedStickies(figma.currentPage.selection))
     figma.ui.postMessage({ tags: tagsWithStates, msg: "init" })
 }
-
-
-figma.on("selectionchange", () => { resetTags() })
 
 
 const loadFonts = async () => {
@@ -19,15 +31,6 @@ const loadFonts = async () => {
 }
 
 
-figma.showUI(
-    __html__, {
-    width: 350,
-    height: 420,
-    title: "Sticky Tags"
-},
-)
-
-resetTags()
 
 
 function getActiveTags(children) {
@@ -132,7 +135,7 @@ figma.ui.onmessage = msg => {
                     } else if (curr.includes(front) && curr.includes(back)) {
                         // Find last tag, place '\n + tag' after that
                         let lastOpen = curr.lastIndexOf(front)
-                        let nextClose = curr.indexOf(back, lastOpen) + 3
+                        let nextClose = curr.indexOf(back, lastOpen) + back.length
                         nodes[i].text.characters = [curr.slice(0, nextClose), '\n', tag, curr.slice(nextClose)].join('');
 
                     } else if (curr.endsWith("\n\n")) {
@@ -148,8 +151,6 @@ figma.ui.onmessage = msg => {
                 }
 
                 resetTags()
-                // figma.currentPage.selection = nodes
-                // figma.viewport.scrollAndZoomIntoView(nodes)
             })
             break
 
@@ -284,7 +285,16 @@ figma.ui.onmessage = msg => {
 
             figma.currentPage.selection = realSections
             figma.viewport.scrollAndZoomIntoView(realSections)
+            break
 
+
+        case "update-symbols":
+            front = msg.front
+            back = msg.back
+            figma.root.setPluginData('front', front)
+            figma.root.setPluginData('back', back)
+
+            resetTags()
             break
 
 
