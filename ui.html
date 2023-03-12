@@ -1,43 +1,32 @@
 <div>
-    <!-- <div id="top-row">
-        Mode:
-        <button class="mode active" id="mode-1" onclick="selectMode('mode-1')">
-            tag
-        </button>
-        <button class="mode" id="mode-2" onclick="selectMode('mode-2')">
-            select
-        </button>
-        <button class="mode" id="mode-3" onclick="selectMode('mode-3')">
-            section
-        </button>
-    </div> -->
     <div id="input-row">
         <input id="tag-label" />
         <button id="add-tag">
             Add tag
         </button>
     </div>
-    <p id="error-message"></p>
+    <p id="error-message" class="error-message"></p>
     <h2>Tags:</h2>
 
     <div id="tags">
     </div>
     <h2>Create Sections:</h2>
     <div class="button-row" id="bottom-buttons">
-        <!-- <button id="section-all" class="primary">Section <b>all</b> Sticky Notes by tag</button> -->
-        <button id="section-tags" class="primary" onclick="sectionByTag()">Section selected Sticky Notes <b>by
-                tag</b></button>
+        <button id="section-tags" class="primary" onclick="sectionByTag()">
+            Section selected Sticky Notes <b>by tag</b></button>
     </div>
 
     <div id="symbols">
         <button id="accordion">Edit tag symbols</button>
         <div id="panel">
-            <!-- <p>current '[# ' and ' #]'</p> -->
-            <!-- <div> -->
-            <label>Start:</label> <input id="start" />
-            <label>End:</label> <input id="end" />
-            <button id="save-symbols">Save</button>
-            <!-- </div> -->
+            <p id="current-symbols">Current symbols: '[# ' and ' #]'</p>
+            <div id="symbol-row">
+                <label>Start:</label> <input id="start" />
+                <label>End:</label> <input id="end" />
+                <button id="save-symbols">Save</button>
+            </div>
+            <p id="symbol-error" class="error-message"></p>
+
         </div>
     </div>
 </div>
@@ -50,6 +39,14 @@
     document.getElementById("end").value = back
 
     document.getElementById("save-symbols").addEventListener("click", function () {
+        let errorMsg = document.getElementById("symbol-error")
+        if (document.getElementById("start").value.trim() === "" || 
+            document.getElementById("end").value.trim() === "") {
+            errorMsg.innerHTML = "Tag symbols cannot be empty (or just spaces)"
+            return
+        }
+
+        errorMsg.innerHTML = ""
         front = document.getElementById("start").value
         back = document.getElementById("end").value
 
@@ -413,16 +410,16 @@
 
         display: none;
         overflow: hidden;
+        flex-direction: column;
 
         border-top: 1px solid black;
-        gap: 8px;
-        align-items: baseline
+
     }
 
 
     #accordion:after {
         content: '\02795';
-        font-size: 13px;
+        font-size: 14px;
         color: black;
         float: right;
         margin-left: 5px;
@@ -431,4 +428,34 @@
     #accordion.active:after {
         content: "\2796";
     }
+
+    #symbol-row {
+        display: flex;
+        gap: 8px;
+        align-items: baseline
+    }
+
+    #current-symbols {
+        font-family: Arial;
+        font-size: 12px;
+        font-weight: 600;
+        font-style: normal;
+        color: black;
+        margin-top: 0px;
+        margin-bottom: 14px;
+        padding: 0;
+    }
+
+    .error-message {
+        font-family: Arial;
+        font-size: 12px;
+        font-weight: 600;
+        font-style: normal;
+        color: red;
+    }
+
+    #symbol-error {
+        margin-bottom: 2px;
+    }
+
 </style>
