@@ -19,7 +19,7 @@
     <div id="symbols">
         <button id="accordion">Edit tag symbols</button>
         <div id="panel">
-            <p id="current-symbols">Current symbols: '[# ' and ' #]'</p>
+            <p id="current-symbols"></p>
             <div id="symbol-row">
                 <label>Start:</label> <input id="start" />
                 <label>End:</label> <input id="end" />
@@ -38,9 +38,11 @@
     document.getElementById("start").value = front
     document.getElementById("end").value = back
 
+    document.getElementById("current-symbols").innerHTML = `Current symbols: '${front}' and '${back}'`
+
     document.getElementById("save-symbols").addEventListener("click", function () {
         let errorMsg = document.getElementById("symbol-error")
-        if (document.getElementById("start").value.trim() === "" || 
+        if (document.getElementById("start").value.trim() === "" ||
             document.getElementById("end").value.trim() === "") {
             errorMsg.innerHTML = "Tag symbols cannot be empty (or just spaces)"
             return
@@ -49,6 +51,7 @@
         errorMsg.innerHTML = ""
         front = document.getElementById("start").value
         back = document.getElementById("end").value
+        document.getElementById("current-symbols").innerHTML = `Current symbols: '${front}' and '${back}'`
 
         parent.postMessage({
             pluginMessage: {
@@ -191,10 +194,14 @@
         } else if (event.data.pluginMessage.msg === "set-front") {
             front = event.data.pluginMessage.front
             document.getElementById("start").value = front
+            document.getElementById("current-symbols").innerHTML = `Current symbols: '${front}' and '${back}'`
+
 
         } else if (event.data.pluginMessage.msg === "set-back") {
             back = event.data.pluginMessage.back
             document.getElementById("end").value = back
+            document.getElementById("current-symbols").innerHTML = `Current symbols: '${front}' and '${back}'`
+
 
         }
 
@@ -457,5 +464,4 @@
     #symbol-error {
         margin-bottom: 2px;
     }
-
 </style>
