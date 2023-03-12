@@ -214,6 +214,7 @@ figma.ui.onmessage = msg => {
             let x
             let y
 
+            // Create sections, and populate with Stickies
             for (let i = 0; i < sections.length; i++) {
                 let section = figma.createSection()
                 section.name = sections[i].title
@@ -243,6 +244,7 @@ figma.ui.onmessage = msg => {
                 let prevMaxHeights = 0
                 let gap = 60
 
+                // Add Sticky notes to section
                 for (let j = 0; j < sections[i].nodes.length; j++) {
                     let sticky = sections[i].nodes[j].clone()
                     let row = Math.floor(j / rowWidth)
@@ -266,6 +268,7 @@ figma.ui.onmessage = msg => {
 
                 }
 
+                // Resize section to fit Stickies
                 let widths = []
                 for (let i = 0; i < rows.length; i++) {
                     widths.push(rows[i].map(row => row.width).reduce((prev, curr) => prev + curr, 0) + (gap * (rows[i].length + 1)))
