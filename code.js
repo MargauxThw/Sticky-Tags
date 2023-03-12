@@ -6,6 +6,69 @@ figma.showUI(
 },
 )
 
+const colors = [{
+    r: 1,
+    g: 0.8509804010391235,
+    b: 0.4000000059604645,
+    name: "yellow"
+},
+{
+    r: 0.5215686559677124,
+    g: 0.8784313797950745,
+    b: 0.6392157077789307,
+    name: "green"
+},
+{
+    r: 0.4588235318660736,
+    g: 0.843137264251709,
+    b: 0.9411764740943909,
+    name: "teal"
+},
+{
+    r: 0.686274528503418,
+    g: 0.7372549176216125,
+    b: 0.8117647171020508,
+    name: "gray"
+},
+{
+    r: 1,
+    g: 0.686274528503418,
+    b: 0.6392157077789307,
+    name: "red"
+},
+{
+    r: 1,
+    g: 0.7686274647712708,
+    b: 0.43921568989753723,
+    name: "orange"
+},
+{
+    r: 0.501960813999176,
+    g: 0.7921568751335144,
+    b: 1,
+    name: "blue"
+},
+{
+    r: 0.8509804010391235,
+    g: 0.7215686440467834,
+    b: 1,
+    name: "violet"
+},
+{
+    r: 1,
+    g: 0.7411764860153198,
+    b: 0.9490196108818054,
+    name: "pink"
+},
+{
+    r: 0.9019607901573181,
+    g: 0.9019607901573181,
+    b: 0.9019607901573181,
+    name: "light-gray"
+}
+
+]
+
 
 var back = figma.root.getPluginData("back") === '' ? " #]" : figma.root.getPluginData("back")
 var front = figma.root.getPluginData("front") === '' ? " #]" : figma.root.getPluginData("front")
@@ -114,7 +177,88 @@ function getSelectedStickies(children) {
 }
 
 
+function makeSections(sections) {
+    let realSections = []
+    let x
+    let y
+
+    // Create sections, and populate with Stickies
+    for (let i = 0; i < sections.length; i++) {
+        let section = figma.createSection()
+        section.name = sections[i].title
+
+        if (i == 0) {
+            x = section.x
+            y = section.y
+        } else {
+            section.x = x
+            section.y = y
+        }
+
+        let rows = []
+        let rowWidth = 4
+
+        // Pre-fill rows array to determine height / width
+        for (let j = 0; j < sections[i].nodes.length; j++) {
+            if (j % rowWidth == 0) {
+                rows.push([])
+            }
+
+            let data = { height: sections[i].nodes[j].height, width: sections[i].nodes[j].width }
+            rows[rows.length - 1].push(data)
+        }
+
+        let rowStickyWidth = 0
+        let prevMaxHeights = 0
+        let gap = 60
+
+        // Add Sticky notes to section
+        for (let j = 0; j < sections[i].nodes.length; j++) {
+            let sticky = sections[i].nodes[j].clone()
+            let row = Math.floor(j / rowWidth)
+            let col = (j % rowWidth)
+
+            if (col == 0 && row > 0) {
+                prevMaxHeights += Math.max(...rows[row - 1].map(s => s.height))
+                rowStickyWidth = 0
+            }
+
+            sticky.x = ((col + 1) * gap) + rowStickyWidth
+            rowStickyWidth += rows[row][col].width
+            sticky.y = ((row + 1) * gap) + prevMaxHeights
+
+            section.appendChild(sticky)
+
+            // Add height of last row for calculating section height
+            if (j == sections[i].nodes.length - 1) {
+                prevMaxHeights += Math.max(...rows[row].map(s => s.height))
+            }
+
+        }
+
+        // Resize section to fit Stickies
+        let widths = []
+        for (let i = 0; i < rows.length; i++) {
+            widths.push(rows[i].map(row => row.width).reduce((prev, curr) => prev + curr, 0) + (gap * (rows[i].length + 1)))
+        }
+
+        let maxWidth = Math.max(...widths)
+        x += maxWidth + 240
+
+        section.resizeWithoutConstraints(maxWidth, ((rows.length + 1) * gap) + prevMaxHeights)
+        realSections.push(section)
+
+    }
+
+    figma.currentPage.selection = realSections
+    figma.viewport.scrollAndZoomIntoView(realSections)
+}
+
+
 figma.ui.onmessage = msg => {
+    var tags
+    var selected
+    var sections
     var children = figma.currentPage.selection
     const nodes = getSelectedStickies(children)
 
@@ -145,9 +289,7 @@ figma.ui.onmessage = msg => {
                     } else {
                         nodes[i].text.characters = `${curr}\n\n${tag}`
                     }
-
                 }
-
                 resetTags()
             })
             break
@@ -180,9 +322,9 @@ figma.ui.onmessage = msg => {
 
 
         case 'section-tag':
-            let tags = getActiveTags(figma.currentPage.selection)
-            let selected = getSelectedStickies(figma.currentPage.selection)
-            let sections = []
+            tags = getActiveTags(figma.currentPage.selection)
+            selected = getSelectedStickies(figma.currentPage.selection)
+            sections = []
 
             // Fill sections with title and Sticky Nodes
             for (let i = 0; i < tags.length; i++) {
@@ -208,81 +350,73 @@ figma.ui.onmessage = msg => {
                 sections.push(noTags)
             }
 
+            makeSections(sections)
+            break
 
-            let realSections = []
-            let x
-            let y
 
-            // Create sections, and populate with Stickies
-            for (let i = 0; i < sections.length; i++) {
-                let section = figma.createSection()
-                section.name = sections[i].title
+        case 'section-color':
+            selected = getSelectedStickies(figma.currentPage.selection)
+            sections = []
 
-                if (i == 0) {
-                    x = section.x
-                    y = section.y
-                } else {
-                    section.x = x
-                    section.y = y
-                }
+            let activeColorIds = selected.map(s => s.fills[0].color)
+            let activeColors = []
+            let nodeColors = []
 
-                let rows = []
-                let rowWidth = 4
-
-                // Pre-fill rows array to determine height / width
-                for (let j = 0; j < sections[i].nodes.length; j++) {
-                    if (j % rowWidth == 0) {
-                        rows.push([])
+            // Match colour codes with names for system defaul colours
+            for (let i = 0; i < selected.length; i++) {
+                let colorName = "custom"
+                for (let j = 0; j < colors.length; j++) {
+                    if (activeColorIds[i].r == colors[j].r && activeColorIds[i].g == colors[j].g && activeColorIds[i].b == colors[j].b) {
+                        activeColors.push(colors[j].name)
+                        colorName = colors[j].name
+                        break
                     }
-
-                    let data = { height: sections[i].nodes[j].height, width: sections[i].nodes[j].width }
-                    rows[rows.length - 1].push(data)
                 }
 
-                let rowStickyWidth = 0
-                let prevMaxHeights = 0
-                let gap = 60
-
-                // Add Sticky notes to section
-                for (let j = 0; j < sections[i].nodes.length; j++) {
-                    let sticky = sections[i].nodes[j].clone()
-                    let row = Math.floor(j / rowWidth)
-                    let col = (j % rowWidth)
-
-                    if (col == 0 && row > 0) {
-                        prevMaxHeights += Math.max(...rows[row - 1].map(s => s.height))
-                        rowStickyWidth = 0
-                    }
-
-                    sticky.x = ((col + 1) * gap) + rowStickyWidth
-                    rowStickyWidth += rows[row][col].width
-                    sticky.y = ((row + 1) * gap) + prevMaxHeights
-
-                    section.appendChild(sticky)
-
-                    // Add height of last row for calculating section height
-                    if (j == sections[i].nodes.length - 1) {
-                        prevMaxHeights += Math.max(...rows[row].map(s => s.height))
-                    }
-
-                }
-
-                // Resize section to fit Stickies
-                let widths = []
-                for (let i = 0; i < rows.length; i++) {
-                    widths.push(rows[i].map(row => row.width).reduce((prev, curr) => prev + curr, 0) + (gap * (rows[i].length + 1)))
-                }
-
-                let maxWidth = Math.max(...widths)
-                x += maxWidth + 240
-
-                section.resizeWithoutConstraints(maxWidth, ((rows.length + 1) * gap) + prevMaxHeights)
-                realSections.push(section)
+                nodeColors.push({ node: selected[i], color: colorName })
 
             }
 
-            figma.currentPage.selection = realSections
-            figma.viewport.scrollAndZoomIntoView(realSections)
+            activeColors = [...new Set(activeColors)]
+            if (nodeColors.map(nc => nc.color).includes("custom")) {
+                activeColors.push("custom")
+            }
+
+
+            // Fill sections with title and Sticky Nodes
+            for (let i = 0; i < activeColors.length; i++) {
+                let section = { title: activeColors[i], nodes: [] }
+                for (let j = 0; j < nodeColors.length; j++) {
+                    if (nodeColors[j].color === activeColors[i]) {
+                        section.nodes.push(nodeColors[j].node)
+                    }
+                }
+                sections.push(section)
+            }
+
+            makeSections(sections)
+            break
+
+
+        case 'section-author':
+            selected = getSelectedStickies(figma.currentPage.selection)
+            sections = []
+
+            let activeAuthors = selected.map(s => s.authorName)
+            activeAuthors = [...new Set(activeAuthors)]
+
+            // Fill sections with title and Sticky Nodes
+            for (let i = 0; i < activeAuthors.length; i++) {
+                let section = { title: activeAuthors[i], nodes: [] }
+                for (let j = 0; j < selected.length; j++) {
+                    if (selected[j].authorName === activeAuthors[i]) {
+                        section.nodes.push(selected[j])
+                    }
+                }
+                sections.push(section)
+            }
+
+            makeSections(sections)
             break
 
 

@@ -13,7 +13,11 @@
     <h2>Create Sections:</h2>
     <div class="button-row" id="bottom-buttons">
         <button id="section-tags" class="primary" onclick="sectionByTag()">
-            Section selected Sticky Notes <b>by tag</b></button>
+            Section selected <b>by tag</b></button>
+        <button id="section-colors" class="primary" onclick="sectionByColor()">
+            Section selected <b>by colour</b></button>
+        <button id="section-authors" class="primary" onclick="sectionByAuthor()">
+            Section selected <b>by author</b></button>
     </div>
 
     <div id="symbols">
@@ -103,10 +107,28 @@
 
     }
 
+
     function sectionByTag() {
         parent.postMessage({
             pluginMessage: {
                 type: "section-tag",
+            }
+        }, "*")
+    }
+
+
+    function sectionByColor() {
+        parent.postMessage({
+            pluginMessage: {
+                type: "section-color",
+            }
+        }, "*")
+    }
+
+    function sectionByAuthor() {
+        parent.postMessage({
+            pluginMessage: {
+                type: "section-author",
             }
         }, "*")
     }
