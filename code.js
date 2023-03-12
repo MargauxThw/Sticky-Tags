@@ -183,8 +183,6 @@ figma.ui.onmessage = msg => {
             let tags = getActiveTags(figma.currentPage.selection)
             let selected = getSelectedStickies(figma.currentPage.selection)
 
-
-
             let sections = []
 
             // Fill sections with title and Sticky Nodes
@@ -211,11 +209,11 @@ figma.ui.onmessage = msg => {
                 sections.push(noTags)
             }
 
-            
+
             let realSections = []
             let x
             let y
-            
+
             for (let i = 0; i < sections.length; i++) {
                 let section = figma.createSection()
                 section.name = sections[i].title
@@ -228,30 +226,56 @@ figma.ui.onmessage = msg => {
                     section.y = y
                 }
 
-                let numChildren = sections[i].nodes.length
-                let childrenWidth = 0
-                let maxHeight = 0
+                let rows = []
+                let rowWidth = 4
+
+                // Pre-fill rows array to determine height / width
+                for (let j = 0; j < sections[i].nodes.length; j++) {
+                    if (j % rowWidth == 0) {
+                        rows.push([])
+                    }
+
+                    let data = { height: sections[i].nodes[j].height, width: sections[i].nodes[j].width }
+                    rows[rows.length - 1].push(data)
+                }
+
+                let rowStickyWidth = 0
+                let prevMaxHeights = 0
+                let gap = 60
 
                 for (let j = 0; j < sections[i].nodes.length; j++) {
                     let sticky = sections[i].nodes[j].clone()
+                    let row = Math.floor(j / rowWidth)
+                    let col = (j % rowWidth)
 
-                    sticky.x = childrenWidth + ((j + 1) * 60)
-                    sticky.y = y + 60
+                    if (col == 0 && row > 0) {
+                        prevMaxHeights += Math.max(...rows[row - 1].map(s => s.height))
+                        rowStickyWidth = 0
+                    }
 
-                    maxHeight = sticky.height > maxHeight ? sticky.height : maxHeight
+                    sticky.x = ((col + 1) * gap) + rowStickyWidth
+                    rowStickyWidth += rows[row][col].width
+                    sticky.y = ((row + 1) * gap) + prevMaxHeights
 
-                    childrenWidth = childrenWidth + sticky.width
                     section.appendChild(sticky)
+
+                    // Add height of last row for calculating section height
+                    if (j == sections[i].nodes.length - 1) {
+                        prevMaxHeights += Math.max(...rows[row].map(s => s.height))
+                    }
+
                 }
 
-                section.resizeWithoutConstraints(childrenWidth + ((numChildren + 1) * 60), maxHeight + 120)
-
-                if (maxHeight == 0) {
-                    section.resizeWithoutConstraints(240 + 120, 240 + 120)
+                let widths = []
+                for (let i = 0; i < rows.length; i++) {
+                    widths.push(rows[i].map(row => row.width).reduce((prev, curr) => prev + curr, 0) + (gap * (rows[i].length + 1)))
                 }
 
+                let maxWidth = Math.max(...widths)
+                x += maxWidth + 240
+
+                section.resizeWithoutConstraints(maxWidth, ((rows.length + 1) * gap) + prevMaxHeights)
                 realSections.push(section)
-                x = x + childrenWidth + ((numChildren + 1) * 60) + 240
 
             }
 
