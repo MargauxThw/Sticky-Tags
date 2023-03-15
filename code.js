@@ -1,7 +1,7 @@
 figma.showUI(
     __html__, {
     width: 350,
-    height: 420,
+    height: 520,
     title: "Sticky Tags"
 },
 )
