@@ -1,40 +1,18 @@
-Below are the steps to get your plugin running. You can also find instructions at:
+# Sticky Tags
 
-  https://www.figma.com/plugin-docs/plugin-quickstart/
+> Speed up your synthesis in FigJam with customisable text-based tags and automatic clustering into sections.
 
-This plugin template uses Typescript and NPM, two standard tools in creating JavaScript applications.
+Sticky Tags is a text-based tagging tool designed to help you and your team speed up your research synthesis in Figjam.
 
-First, download Node.js which comes with NPM. This will allow you to install TypeScript and other
-libraries. You can find the download link here:
+You can easily add tags by typing the tag label into the input field on the plugin window. Once a tag is added (or is found in your file) it will show up in the Tags section in a purple box. Clicking one of these tags will add it to your selected sticky notes if it’s not already on all of them.
 
-  https://nodejs.org/en/download/
+You can also remove tags from your selected sticky notes by clicking the bright purple box containing the tag label in the plugin window. If the tag is bright, this means that it is on all of your selected sticky notes.
 
-Next, install TypeScript using the command:
+Finally, you can cluster sticky notes into sections automatically by tag, colour, or author. This feature will create a copy of your sticky notes and place it into every category (e.g. tag, colour, author) that it fits into. This will save you the time of re-organising your sticky notes into clusters once they’ve been tagged.
 
-  npm install -g typescript
+### Limitations:
+* Once a tag has been removed from all sticky notes in your file it will no longer show up in the plugin window’s list of tags. In the future, I may look into adding the ability to pin tags.
+* Once a tag has been added it cannot be edited through the plugin. This can be done simply using the built-in find and replace feature in Figjam however. The plugin UI will update once your selection changes to reflect changes made through find and replace or manual tagging.
 
-Finally, in the directory of your plugin, get the latest type definitions for the plugin API by running:
-
-  npm install --save-dev @figma/plugin-typings
-
-If you are familiar with JavaScript, TypeScript will look very familiar. In fact, valid JavaScript code
-is already valid Typescript code.
-
-TypeScript adds type annotations to variables. This allows code editors such as Visual Studio Code
-to provide information about the Figma API while you are writing code, as well as help catch bugs
-you previously didn't notice.
-
-For more information, visit https://www.typescriptlang.org/
-
-Using TypeScript requires a compiler to convert TypeScript (code.ts) into JavaScript (code.js)
-for the browser to run.
-
-We recommend writing TypeScript code using Visual Studio code:
-
-1. Download Visual Studio Code if you haven't already: https://code.visualstudio.com/.
-2. Open this directory in Visual Studio Code.
-3. Compile TypeScript to JavaScript: Run the "Terminal > Run Build Task..." menu item,
-    then select "npm: watch". You will have to do this again every time
-    you reopen Visual Studio Code.
-
-That's it! Visual Studio Code will regenerate the JavaScript file every time you save.
+### Extra tips/features
+* Use the edit symbols feature in the accordion at the bottom of the plugin window to change the preset tag symbols. You will need to manually use the find and replace feature to swap pre-existing tags to match your new format.
