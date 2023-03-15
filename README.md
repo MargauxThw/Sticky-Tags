@@ -1,3 +1,5 @@
+![Cover photo - Picture of plugin UI, title, and 2 sticky notes tagged as "Opportunity" and "Pain point"](https://github.com/[margauxthw]/[Sticky-Tags]/blob/[master]/StickyTags-cover.png?raw=true)
+
 # Sticky Tags
 
 > Speed up your synthesis in FigJam with customisable text-based tags and automatic clustering into sections.
