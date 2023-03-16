@@ -71,7 +71,7 @@ const colors = [{
 
 
 var back = figma.root.getPluginData("back") === '' ? " #]" : figma.root.getPluginData("back")
-var front = figma.root.getPluginData("front") === '' ? " #]" : figma.root.getPluginData("front")
+var front = figma.root.getPluginData("front") === '' ? "[# " : figma.root.getPluginData("front")
 figma.ui.postMessage({ front: front, msg: "set-front" })
 figma.ui.postMessage({ back: back, msg: "set-back" })
 
