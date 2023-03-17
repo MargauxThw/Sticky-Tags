@@ -75,6 +75,7 @@ var front = figma.root.getPluginData("front") === '' ? "[# " : figma.root.getPlu
 figma.ui.postMessage({ front: front, msg: "set-front" })
 figma.ui.postMessage({ back: back, msg: "set-back" })
 
+
 resetTags()
 
 figma.on("selectionchange", () => { resetTags() })
@@ -87,10 +88,10 @@ function resetTags() {
 }
 
 
-const loadFonts = async () => {
-    await figma.loadFontAsync({ family: "Inter", style: "Medium" })
-    await figma.loadFontAsync({ family: "Inter", style: "Bold" })
-    await figma.loadFontAsync({ family: "Work Sans", style: "Bold" })
+const loadFonts = async (fonts) => {
+    for (let i = 0; i < fonts.length; i++) {
+        await figma.loadFontAsync({ family: fonts[i].split(" | ")[0], style: fonts[i].split(" | ")[1] })
+    }
 }
 
 
@@ -261,10 +262,13 @@ figma.ui.onmessage = msg => {
     var sections
     var children = figma.currentPage.selection
     const nodes = getSelectedStickies(children)
+    const fonts = [...new Set(nodes.map(n => `${n.text.fontName.family} | ${n.text.fontName.style}`))]
+    // let objectReference = {id:123,value:'test'}
+    // let uniqueArray = [...new Set(nodes.map(n => [n.text.fontName.family, n.text.fontName.style]))]
 
     switch (msg.type) {
         case 'add-tag':
-            loadFonts().then(() => {
+            loadFonts(fonts).then(() => {
                 for (let i = 0; i < nodes.length; i++) {
                     // Add after a \n\n from last character
                     // Or add after the last existing tag
@@ -299,7 +303,7 @@ figma.ui.onmessage = msg => {
             let tag = `${front}${msg.tag.trim()}${back}`
             let longTag = `\n${tag}`
 
-            loadFonts().then(() => {
+            loadFonts(fonts).then(() => {
                 for (let i = 0; i < nodes.length; i++) {
                     while (nodes[i].text.characters.includes(tag)) {
                         nodes[i].text.characters = nodes[i].text.characters.replace(longTag, '')
