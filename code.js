@@ -90,6 +90,9 @@ function resetTags() {
 
 const loadFonts = async (fonts) => {
     for (let i = 0; i < fonts.length; i++) {
+        if (fonts[i].includes(undefined)) {
+            continue
+        }
         await figma.loadFontAsync({ family: fonts[i].split(" | ")[0], style: fonts[i].split(" | ")[1] })
     }
 }
@@ -262,9 +265,12 @@ figma.ui.onmessage = msg => {
     var sections
     var children = figma.currentPage.selection
     const nodes = getSelectedStickies(children)
-    const fonts = [...new Set(nodes.map(n => `${n.text.fontName.family} | ${n.text.fontName.style}`))]
-    // let objectReference = {id:123,value:'test'}
-    // let uniqueArray = [...new Set(nodes.map(n => [n.text.fontName.family, n.text.fontName.style]))]
+    var allFonts = []
+    for (let i = 0; i < nodes.length; i++) {
+        allFonts.push(nodes[i].text.getStyledTextSegments(['fontName']).map(n => `${n.fontName.family} | ${n.fontName.style}`))
+    }
+    allFonts = allFonts.flat(1)
+    const fonts = [...new Set(allFonts)]
 
     switch (msg.type) {
         case 'add-tag':
@@ -273,6 +279,7 @@ figma.ui.onmessage = msg => {
                     // Add after a \n\n from last character
                     // Or add after the last existing tag
                     let curr = nodes[i].text.characters
+                    console.log("STYLED:", nodes[i].text.getStyledTextSegments(["listOptions"]))
                     let tag = `${front}${msg.tag.trim()}${back}`
 
                     if (curr.includes(tag)) {
@@ -282,16 +289,19 @@ figma.ui.onmessage = msg => {
                         // Find last tag, place '\n + tag' after that
                         let lastOpen = curr.lastIndexOf(front)
                         let nextClose = curr.indexOf(back, lastOpen) + back.length
-                        nodes[i].text.characters = [curr.slice(0, nextClose), '\n', tag, curr.slice(nextClose)].join('');
+                        nodes[i].text.insertCharacters(nextClose, `\n${tag}`, 'BEFORE')
+
 
                     } else if (curr.endsWith("\n\n")) {
-                        nodes[i].text.characters = `${curr}${tag}`
+                        nodes[i].text.insertCharacters(nodes[i].text.characters.length, `${tag}`, 'BEFORE')
 
                     } else if (curr.endsWith("\n")) {
-                        nodes[i].text.characters = `${curr}\n${tag}`
+                        nodes[i].text.insertCharacters(nodes[i].text.characters.length, `\n${tag}`, 'BEFORE')
+
 
                     } else {
-                        nodes[i].text.characters = `${curr}\n\n${tag}`
+                        nodes[i].text.insertCharacters(nodes[i].text.characters.length, `\n\n${tag}`, 'BEFORE')
+
                     }
                 }
                 resetTags()
@@ -305,9 +315,17 @@ figma.ui.onmessage = msg => {
 
             loadFonts(fonts).then(() => {
                 for (let i = 0; i < nodes.length; i++) {
+                    while (nodes[i].text.characters.includes(longTag)) {
+                        let curr = nodes[i].text.characters
+                        let lastOpen = curr.lastIndexOf(longTag)
+                        let nextClose = curr.indexOf(back, lastOpen) + back.length
+                        nodes[i].text.deleteCharacters(lastOpen, nextClose)
+                    }
                     while (nodes[i].text.characters.includes(tag)) {
-                        nodes[i].text.characters = nodes[i].text.characters.replace(longTag, '')
-                        nodes[i].text.characters = nodes[i].text.characters.replace(tag, '')
+                        let curr = nodes[i].text.characters
+                        let lastOpen = curr.lastIndexOf(tag)
+                        let nextClose = curr.indexOf(back, lastOpen) + back.length
+                        nodes[i].text.deleteCharacters(lastOpen, nextClose)
                     }
                 }
                 resetTags()
