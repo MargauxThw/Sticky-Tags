@@ -279,8 +279,8 @@ figma.ui.onmessage = msg => {
                     // Add after a \n\n from last character
                     // Or add after the last existing tag
                     let curr = nodes[i].text.characters
-                    console.log("STYLED:", nodes[i].text.getStyledTextSegments(["listOptions"]))
                     let tag = `${front}${msg.tag.trim()}${back}`
+                    let listOptions = nodes[i].text.getStyledTextSegments(["listOptions"])
 
                     if (curr.includes(tag)) {
                         // If tag is already on Note, don't duplicate
@@ -291,6 +291,21 @@ figma.ui.onmessage = msg => {
                         let nextClose = curr.indexOf(back, lastOpen) + back.length
                         nodes[i].text.insertCharacters(nextClose, `\n${tag}`, 'BEFORE')
 
+                        // Persist listOptions for original text
+                        let insertLength = `\n${tag}`.length
+                        for (let j = 0; j < listOptions.length; j++) {
+                            if (listOptions[j].end < nextClose) {
+                                nodes[i].text.setRangeListOptions(listOptions[j].start, listOptions[j].end, listOptions[j].listOptions)
+                            } else if (listOptions[j].start < nextClose){
+                                nodes[i].text.setRangeListOptions(listOptions[j].start, listOptions[j].end + insertLength, listOptions[j].listOptions)
+                            } else {
+                                nodes[i].text.setRangeListOptions(listOptions[j].start + insertLength, listOptions[j].end + insertLength, listOptions[j].listOptions)
+
+                            }
+                        }
+
+                        continue
+
 
                     } else if (curr.endsWith("\n\n")) {
                         nodes[i].text.insertCharacters(nodes[i].text.characters.length, `${tag}`, 'BEFORE')
@@ -298,10 +313,14 @@ figma.ui.onmessage = msg => {
                     } else if (curr.endsWith("\n")) {
                         nodes[i].text.insertCharacters(nodes[i].text.characters.length, `\n${tag}`, 'BEFORE')
 
-
                     } else {
                         nodes[i].text.insertCharacters(nodes[i].text.characters.length, `\n\n${tag}`, 'BEFORE')
 
+                    }
+
+                    // Persist listOptions for original text
+                    for (let j = 0; j < listOptions.length; j++) {
+                        nodes[i].text.setRangeListOptions(listOptions[j].start, listOptions[j].end, listOptions[j].listOptions)
                     }
                 }
                 resetTags()
