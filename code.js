@@ -296,7 +296,7 @@ figma.ui.onmessage = msg => {
                         for (let j = 0; j < listOptions.length; j++) {
                             if (listOptions[j].end < nextClose) {
                                 nodes[i].text.setRangeListOptions(listOptions[j].start, listOptions[j].end, listOptions[j].listOptions)
-                            } else if (listOptions[j].start < nextClose){
+                            } else if (listOptions[j].start < nextClose) {
                                 nodes[i].text.setRangeListOptions(listOptions[j].start, listOptions[j].end + insertLength, listOptions[j].listOptions)
                             } else {
                                 nodes[i].text.setRangeListOptions(listOptions[j].start + insertLength, listOptions[j].end + insertLength, listOptions[j].listOptions)
@@ -334,17 +334,59 @@ figma.ui.onmessage = msg => {
 
             loadFonts(fonts).then(() => {
                 for (let i = 0; i < nodes.length; i++) {
+                    let listOptions = nodes[i].text.getStyledTextSegments(["listOptions"])
+
+                    if (!nodes[i].text.characters.includes(longTag)) {
+                        longTag = tag
+                    }
+
                     while (nodes[i].text.characters.includes(longTag)) {
                         let curr = nodes[i].text.characters
                         let lastOpen = curr.lastIndexOf(longTag)
                         let nextClose = curr.indexOf(back, lastOpen) + back.length
                         nodes[i].text.deleteCharacters(lastOpen, nextClose)
-                    }
-                    while (nodes[i].text.characters.includes(tag)) {
-                        let curr = nodes[i].text.characters
-                        let lastOpen = curr.lastIndexOf(tag)
-                        let nextClose = curr.indexOf(back, lastOpen) + back.length
-                        nodes[i].text.deleteCharacters(lastOpen, nextClose)
+
+                        let insertLength = longTag.length
+                        for (let j = 0; j < listOptions.length; j++) {
+                            // console.log("WORKING")
+                            let start = listOptions[j].start
+                            let end = listOptions[j].end
+                            let los = listOptions[j].listOptions
+
+                            if (listOptions[j].start > nextClose) {
+                                // If start is after the removed segment
+                                start -= insertLength
+                            } 
+
+                            if (listOptions[j].start >= lastOpen && listOptions[j].start <= nextClose) {
+                                // If start is somewhere in the removed segment, start at first index after removed 
+                                // (which is the original start of the removed segment)
+                                start = lastOpen
+                            }
+
+                            if (listOptions[j].end >= lastOpen && listOptions[j].end <= nextClose) {
+                                // Same as above for end
+                                end = lastOpen
+                            }
+
+                            if (listOptions[j].end > nextClose) {
+                                // If start is after the removed segment
+                                end -= insertLength
+                            } 
+
+                            if (end > start && start < nodes[i].text.characters.length) {
+                                if (end > nodes[i].text.characters.length) {
+                                    end = nodes[i].text.characters.length
+                                }
+                                console.log(nodes[i].text.characters.length, start, end, los, listOptions)
+                                nodes[i].text.setRangeListOptions(start, end, los)
+                            }
+
+
+                        }
+                        if (!nodes[i].text.characters.includes(longTag)) {
+                            longTag = tag
+                        }
                     }
                 }
                 resetTags()
