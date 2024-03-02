@@ -1,520 +1,615 @@
-figma.showUI(
-    __html__, {
-    width: 350,
-    height: 520,
-    title: "Sticky Tags"
-},
-)
+figma.showUI(__html__, {
+  width: 350,
+  height: 520,
+  title: "Sticky Tags",
+});
 
-const colors = [{
+const colors = [
+  {
     r: 1,
     g: 0.8509804010391235,
     b: 0.4000000059604645,
-    name: "yellow"
-},
-{
+    name: "yellow",
+  },
+  {
     r: 0.5215686559677124,
     g: 0.8784313797950745,
     b: 0.6392157077789307,
-    name: "green"
-},
-{
+    name: "green",
+  },
+  {
     r: 0.4588235318660736,
     g: 0.843137264251709,
     b: 0.9411764740943909,
-    name: "teal"
-},
-{
+    name: "teal",
+  },
+  {
     r: 0.686274528503418,
     g: 0.7372549176216125,
     b: 0.8117647171020508,
-    name: "gray"
-},
-{
+    name: "gray",
+  },
+  {
     r: 1,
     g: 0.686274528503418,
     b: 0.6392157077789307,
-    name: "red"
-},
-{
+    name: "red",
+  },
+  {
     r: 1,
     g: 0.7686274647712708,
     b: 0.43921568989753723,
-    name: "orange"
-},
-{
+    name: "orange",
+  },
+  {
     r: 0.501960813999176,
     g: 0.7921568751335144,
     b: 1,
-    name: "blue"
-},
-{
+    name: "blue",
+  },
+  {
     r: 0.8509804010391235,
     g: 0.7215686440467834,
     b: 1,
-    name: "violet"
-},
-{
+    name: "violet",
+  },
+  {
     r: 1,
     g: 0.7411764860153198,
     b: 0.9490196108818054,
-    name: "pink"
-},
-{
+    name: "pink",
+  },
+  {
     r: 0.9019607901573181,
     g: 0.9019607901573181,
     b: 0.9019607901573181,
-    name: "light-gray"
-}
+    name: "light-gray",
+  },
+];
 
-]
+var back =
+  figma.root.getPluginData("back") === ""
+    ? " #]"
+    : figma.root.getPluginData("back");
+var front =
+  figma.root.getPluginData("front") === ""
+    ? "[# "
+    : figma.root.getPluginData("front");
+figma.ui.postMessage({ front: front, msg: "set-front" });
+figma.ui.postMessage({ back: back, msg: "set-back" });
 
+resetTags();
 
-var back = figma.root.getPluginData("back") === '' ? " #]" : figma.root.getPluginData("back")
-var front = figma.root.getPluginData("front") === '' ? "[# " : figma.root.getPluginData("front")
-figma.ui.postMessage({ front: front, msg: "set-front" })
-figma.ui.postMessage({ back: back, msg: "set-back" })
+figma.on("selectionchange", () => {
+  resetTags();
+});
 
-
-resetTags()
-
-figma.on("selectionchange", () => { resetTags() })
-
-var tagsWithStates
+var tagsWithStates;
 
 function resetTags() {
-    tagsWithStates = getTagsStates(getActiveTags(), getSelectedStickies(figma.currentPage.selection))
-    figma.ui.postMessage({ tags: tagsWithStates, msg: "init" })
+  tagsWithStates = getTagsStates(
+    getActiveTags(),
+    getSelectedStickies(figma.currentPage.selection)
+  );
+  figma.ui.postMessage({ tags: tagsWithStates, msg: "init" });
 }
-
 
 const loadFonts = async (fonts) => {
-    for (let i = 0; i < fonts.length; i++) {
-        if (fonts[i].includes(undefined)) {
-            continue
-        }
-        await figma.loadFontAsync({ family: fonts[i].split(" | ")[0], style: fonts[i].split(" | ")[1] })
+  for (let i = 0; i < fonts.length; i++) {
+    if (fonts[i].includes(undefined)) {
+      continue;
     }
-}
+    await figma.loadFontAsync({
+      family: fonts[i].split(" | ")[0],
+      style: fonts[i].split(" | ")[1],
+    });
+  }
 
+  let defaultFonts = [
+    "Merriweather | Regular",
+    "Inter | Medium",
+    "Roboto Mono | Medium",
+    "Figma Hand | Regular",
+  ];
+  for (let i = 0; i < defaultFonts.length; i++) {
+    await figma.loadFontAsync({
+      family: defaultFonts[i].split(" | ")[0],
+      style: defaultFonts[i].split(" | ")[1],
+    });
+  }
+};
 
 function getActiveTags(children) {
-    if (children == null) {
-        children = figma.currentPage.children
-    }
-    let tags = []
+  if (children == null) {
+    children = figma.currentPage.children;
+  }
+  let tags = [];
 
-    for (let i = 0; i < children.length; i++) {
-        if (children[i].type === "SECTION") {
-            var ancestors = getAncestorStickies(children[i], [])
-            for (let j = 0; j < ancestors.length; j++) {
-                if (ancestors[j].type === "STICKY") {
-                    let temp_tags = ancestors[j].text.characters.split(front).filter(tag => tag.indexOf(back) > 0).map(tag => tag.split(back)[0].trim())
-                    tags.push(...temp_tags)
-                }
-            }
-        } else if (children[i].type === "STICKY") {
-            let temp_tags = children[i].text.characters.split(front).filter(tag => tag.indexOf(back) > 0).map(tag => tag.split(back)[0].trim())
-            tags.push(...temp_tags)
+  for (let i = 0; i < children.length; i++) {
+    if (children[i].type === "SECTION") {
+      var ancestors = getAncestorStickies(children[i], []);
+      for (let j = 0; j < ancestors.length; j++) {
+        if (ancestors[j].type === "STICKY") {
+          let temp_tags = ancestors[j].text.characters
+            .split(front)
+            .filter((tag) => tag.indexOf(back) > 0)
+            .map((tag) => tag.split(back)[0].trim());
+          tags.push(...temp_tags);
         }
+      }
+    } else if (children[i].type === "STICKY") {
+      let temp_tags = children[i].text.characters
+        .split(front)
+        .filter((tag) => tag.indexOf(back) > 0)
+        .map((tag) => tag.split(back)[0].trim());
+      tags.push(...temp_tags);
     }
+  }
 
-    return [...new Set(tags)].sort(function (a, b) {
-        return a.toLowerCase().localeCompare(b.toLowerCase());
-    })
+  return [...new Set(tags)].sort(function (a, b) {
+    return a.toLowerCase().localeCompare(b.toLowerCase());
+  });
 }
-
 
 function getTagsStates(activeTags, nodes) {
-    var tagsWithStates = []
-    for (let i = 0; i < activeTags.length; i++) {
-        let onSticky = true
+  var tagsWithStates = [];
+  for (let i = 0; i < activeTags.length; i++) {
+    let onSticky = true;
 
-        // Tags should all be unselected when no stickies are selected
-        if (nodes.length == 0) {
-            onSticky = false
-        }
-
-        for (let j = 0; j < nodes.length; j++) {
-            if (!nodes[j].text.characters.includes(`${front}${activeTags[i]}${back}`)) {
-                onSticky = false
-                break
-            }
-        }
-
-        tagsWithStates.push({ tagName: activeTags[i], onSticky: onSticky })
+    // Tags should all be unselected when no stickies are selected
+    if (nodes.length == 0) {
+      onSticky = false;
     }
-    return tagsWithStates
-}
 
+    for (let j = 0; j < nodes.length; j++) {
+      if (
+        !nodes[j].text.characters.includes(`${front}${activeTags[i]}${back}`)
+      ) {
+        onSticky = false;
+        break;
+      }
+    }
+
+    tagsWithStates.push({ tagName: activeTags[i], onSticky: onSticky });
+  }
+  return tagsWithStates;
+}
 
 function getAncestorStickies(parent, ancestors) {
-    // Recursively get all Stickies in sections (and sections in sections etc.)
-    for (let i = 0; i < parent.children.length; i++) {
-        if (parent.children[i].type === "STICKY") {
-            ancestors.push(parent.children[i])
-        } else if (parent.children[i].type === "SECTION") {
-            ancestors = getAncestorStickies(parent.children[i], ancestors)
-        }
+  // Recursively get all Stickies in sections (and sections in sections etc.)
+  for (let i = 0; i < parent.children.length; i++) {
+    if (parent.children[i].type === "STICKY") {
+      ancestors.push(parent.children[i]);
+    } else if (parent.children[i].type === "SECTION") {
+      ancestors = getAncestorStickies(parent.children[i], ancestors);
     }
-    return ancestors
+  }
+  return ancestors;
 }
-
 
 function getSelectedStickies(children) {
-    var nodes = []
+  var nodes = [];
 
-    // Add all selected Sticky Notes to nodes array
-    for (let i = 0; i < children.length; i++) {
-        if (children[i].type === "SECTION") {
-            var ancestors = getAncestorStickies(children[i], [])
-            for (let j = 0; j < ancestors.length; j++) {
-                if (ancestors[j].type === "STICKY") {
-                    nodes.push(ancestors[j])
-                }
-            }
-        } else if (children[i].type === "STICKY") {
-            nodes.push(children[i])
+  // Add all selected Sticky Notes to nodes array
+  for (let i = 0; i < children.length; i++) {
+    if (children[i].type === "SECTION") {
+      var ancestors = getAncestorStickies(children[i], []);
+      for (let j = 0; j < ancestors.length; j++) {
+        if (ancestors[j].type === "STICKY") {
+          nodes.push(ancestors[j]);
         }
+      }
+    } else if (children[i].type === "STICKY") {
+      nodes.push(children[i]);
     }
-    return nodes
+  }
+  return nodes;
 }
-
 
 function makeSections(sections) {
-    let realSections = []
-    let x
-    let y
+  let realSections = [];
+  let x;
+  let y;
 
-    // Create sections, and populate with Stickies
-    for (let i = 0; i < sections.length; i++) {
-        let section = figma.createSection()
-        section.name = sections[i].title
+  // console.log(figma.currentPage.selection.getSelectedStickies.reduce(function(prev, curr) {
+  //     return prev.y < curr.y ? prev : curr;
+  // }))
+  // console.log(Math.min(...getSelectedStickies(figma.currentPage.selection).map(n => n.y)))
+  // console.log(Math.min(figma.currentPage.selection.map(n => n.y)))
+  // console.log(Math.max(figma.currentPage.selection.map(tag => tag.nodes.map(n => n.x))))
 
-        if (i == 0) {
-            x = section.x
-            y = section.y
-        } else {
-            section.x = x
-            section.y = y
-        }
+  //   Note: PARTIAL CODE FOR IMPLEMENTING SMARTER PASTE PLACEMENT
+  //   let new_y = Math.min(
+  //     ...getSelectedStickies(figma.currentPage.selection).map((n) => n.y)
+  //   );
+  //   let new_x =
+  //     Math.max(
+  //       ...getSelectedStickies(figma.currentPage.selection).map((n) => n.x)
+  //     ) +
+  //     getSelectedStickies(figma.currentPage.selection)
+  //       .sort((a, b) => a.x - b.x)
+  //       .map((n) => n.width)[0] +
+  //     60;
+  // new_x = Math.max(figma.currentPage.selection.map(tag => tag.nodes.map(n => n.x)))
 
-        let rows = []
-        let rowWidth = 4
+  // Create sections, and populate with Stickies
+  for (let i = 0; i < sections.length; i++) {
+    let section = figma.createSection();
+    section.name = sections[i].title;
 
-        // Pre-fill rows array to determine height / width
-        for (let j = 0; j < sections[i].nodes.length; j++) {
-            if (j % rowWidth == 0) {
-                rows.push([])
-            }
-
-            let data = { height: sections[i].nodes[j].height, width: sections[i].nodes[j].width }
-            rows[rows.length - 1].push(data)
-        }
-
-        let rowStickyWidth = 0
-        let prevMaxHeights = 0
-        let gap = 60
-
-        // Add Sticky notes to section
-        for (let j = 0; j < sections[i].nodes.length; j++) {
-            let sticky = sections[i].nodes[j].clone()
-            let row = Math.floor(j / rowWidth)
-            let col = (j % rowWidth)
-
-            if (col == 0 && row > 0) {
-                prevMaxHeights += Math.max(...rows[row - 1].map(s => s.height))
-                rowStickyWidth = 0
-            }
-
-            sticky.x = ((col + 1) * gap) + rowStickyWidth
-            rowStickyWidth += rows[row][col].width
-            sticky.y = ((row + 1) * gap) + prevMaxHeights
-
-            section.appendChild(sticky)
-
-            // Add height of last row for calculating section height
-            if (j == sections[i].nodes.length - 1) {
-                prevMaxHeights += Math.max(...rows[row].map(s => s.height))
-            }
-
-        }
-
-        // Resize section to fit Stickies
-        let widths = []
-        for (let i = 0; i < rows.length; i++) {
-            widths.push(rows[i].map(row => row.width).reduce((prev, curr) => prev + curr, 0) + (gap * (rows[i].length + 1)))
-        }
-
-        let maxWidth = Math.max(...widths)
-        x += maxWidth + 240
-
-        section.resizeWithoutConstraints(maxWidth, ((rows.length + 1) * gap) + prevMaxHeights)
-        realSections.push(section)
-
+    if (i == 0) {
+      x = section.x;
+      y = section.y;
+      //   section.x = x;
+      //   section.y = y;
+    } else {
+      section.x = new_x;
+      section.y = new_y;
     }
 
-    figma.currentPage.selection = realSections
-    figma.viewport.scrollAndZoomIntoView(realSections)
+    let rows = [];
+    let rowWidth = 4;
+
+    // Pre-fill rows array to determine height / width
+    for (let j = 0; j < sections[i].nodes.length; j++) {
+      if (j % rowWidth == 0) {
+        rows.push([]);
+      }
+
+      let data = {
+        height: sections[i].nodes[j].height,
+        width: sections[i].nodes[j].width,
+      };
+      rows[rows.length - 1].push(data);
+    }
+
+    let rowStickyWidth = 0;
+    let prevMaxHeights = 0;
+    let gap = 60;
+
+    // Add Sticky notes to section
+    for (let j = 0; j < sections[i].nodes.length; j++) {
+      let sticky = sections[i].nodes[j].clone();
+      let row = Math.floor(j / rowWidth);
+      let col = j % rowWidth;
+
+      if (col == 0 && row > 0) {
+        prevMaxHeights += Math.max(...rows[row - 1].map((s) => s.height));
+        rowStickyWidth = 0;
+      }
+
+      sticky.x = (col + 1) * gap + rowStickyWidth;
+      rowStickyWidth += rows[row][col].width;
+      sticky.y = (row + 1) * gap + prevMaxHeights;
+
+      section.appendChild(sticky);
+
+      // Add height of last row for calculating section height
+      if (j == sections[i].nodes.length - 1) {
+        prevMaxHeights += Math.max(...rows[row].map((s) => s.height));
+      }
+    }
+
+    // Resize section to fit Stickies
+    let widths = [];
+    for (let i = 0; i < rows.length; i++) {
+      widths.push(
+        rows[i].map((row) => row.width).reduce((prev, curr) => prev + curr, 0) +
+          gap * (rows[i].length + 1)
+      );
+    }
+
+    let maxWidth = Math.max(...widths);
+    x += maxWidth + 240;
+
+    section.resizeWithoutConstraints(
+      maxWidth,
+      (rows.length + 1) * gap + prevMaxHeights
+    );
+    realSections.push(section);
+  }
+
+  figma.currentPage.selection = realSections;
+  figma.viewport.scrollAndZoomIntoView(realSections);
 }
 
+figma.ui.onmessage = (msg) => {
+  var tags;
+  var selected;
+  var sections;
+  var children = figma.currentPage.selection;
+  const nodes = getSelectedStickies(children);
+  var allFonts = [];
+  for (let i = 0; i < nodes.length; i++) {
+    allFonts.push(
+      nodes[i].text
+        .getStyledTextSegments(["fontName"])
+        .map((n) => `${n.fontName.family} | ${n.fontName.style}`)
+    );
+  }
+  allFonts = allFonts.flat(1);
+  const fonts = [...new Set(allFonts)];
 
-figma.ui.onmessage = msg => {
-    var tags
-    var selected
-    var sections
-    var children = figma.currentPage.selection
-    const nodes = getSelectedStickies(children)
-    var allFonts = []
-    for (let i = 0; i < nodes.length; i++) {
-        allFonts.push(nodes[i].text.getStyledTextSegments(['fontName']).map(n => `${n.fontName.family} | ${n.fontName.style}`))
-    }
-    allFonts = allFonts.flat(1)
-    const fonts = [...new Set(allFonts)]
+  switch (msg.type) {
+    case "add-tag":
+      loadFonts(fonts).then(() => {
+        for (let i = 0; i < nodes.length; i++) {
+          // Add after a \n\n from last character
+          // Or add after the last existing tag
+          let curr = nodes[i].text.characters;
+          let tag = `${front}${msg.tag.trim()}${back}`;
+          let listOptions = nodes[i].text.getStyledTextSegments([
+            "listOptions",
+          ]);
 
-    switch (msg.type) {
-        case 'add-tag':
-            loadFonts(fonts).then(() => {
-                for (let i = 0; i < nodes.length; i++) {
-                    // Add after a \n\n from last character
-                    // Or add after the last existing tag
-                    let curr = nodes[i].text.characters
-                    let tag = `${front}${msg.tag.trim()}${back}`
-                    let listOptions = nodes[i].text.getStyledTextSegments(["listOptions"])
+          if (curr.includes(tag)) {
+            // If tag is already on Note, don't duplicate
+            continue;
+          } else if (curr.includes(front) && curr.includes(back)) {
+            // Find last tag, place '\n + tag' after that
+            let lastOpen = curr.lastIndexOf(front);
+            let nextClose = curr.indexOf(back, lastOpen) + back.length;
+            nodes[i].text.insertCharacters(nextClose, `\n${tag}`, "BEFORE");
 
-                    if (curr.includes(tag)) {
-                        // If tag is already on Note, don't duplicate
-                        continue
-                    } else if (curr.includes(front) && curr.includes(back)) {
-                        // Find last tag, place '\n + tag' after that
-                        let lastOpen = curr.lastIndexOf(front)
-                        let nextClose = curr.indexOf(back, lastOpen) + back.length
-                        nodes[i].text.insertCharacters(nextClose, `\n${tag}`, 'BEFORE')
+            // Persist listOptions for original text
+            let insertLength = `\n${tag}`.length;
+            for (let j = 0; j < listOptions.length; j++) {
+              if (listOptions[j].end < nextClose) {
+                nodes[i].text.setRangeListOptions(
+                  listOptions[j].start,
+                  listOptions[j].end,
+                  listOptions[j].listOptions
+                );
+              } else if (listOptions[j].start < nextClose) {
+                nodes[i].text.setRangeListOptions(
+                  listOptions[j].start,
+                  listOptions[j].end + insertLength,
+                  listOptions[j].listOptions
+                );
+              } else {
+                nodes[i].text.setRangeListOptions(
+                  listOptions[j].start + insertLength,
+                  listOptions[j].end + insertLength,
+                  listOptions[j].listOptions
+                );
+              }
+            }
 
-                        // Persist listOptions for original text
-                        let insertLength = `\n${tag}`.length
-                        for (let j = 0; j < listOptions.length; j++) {
-                            if (listOptions[j].end < nextClose) {
-                                nodes[i].text.setRangeListOptions(listOptions[j].start, listOptions[j].end, listOptions[j].listOptions)
-                            } else if (listOptions[j].start < nextClose) {
-                                nodes[i].text.setRangeListOptions(listOptions[j].start, listOptions[j].end + insertLength, listOptions[j].listOptions)
-                            } else {
-                                nodes[i].text.setRangeListOptions(listOptions[j].start + insertLength, listOptions[j].end + insertLength, listOptions[j].listOptions)
+            continue;
+          } else if (curr.endsWith("\n\n")) {
+            nodes[i].text.insertCharacters(
+              nodes[i].text.characters.length,
+              `${tag}`,
+              "BEFORE"
+            );
+          } else if (curr.endsWith("\n")) {
+            nodes[i].text.insertCharacters(
+              nodes[i].text.characters.length,
+              `\n${tag}`,
+              "BEFORE"
+            );
+          } else {
+            nodes[i].text.insertCharacters(
+              nodes[i].text.characters.length,
+              `\n\n${tag}`,
+              "BEFORE"
+            );
+          }
 
-                            }
-                        }
+          // Persist listOptions for original text
+          for (let j = 0; j < listOptions.length; j++) {
+            nodes[i].text.setRangeListOptions(
+              listOptions[j].start,
+              listOptions[j].end,
+              listOptions[j].listOptions
+            );
+          }
+        }
+        resetTags();
+      });
+      break;
 
-                        continue
+    case "remove-tag":
+      let tag = `${front}${msg.tag.trim()}${back}`;
+      let longTag = `\n${tag}`;
 
+      loadFonts(fonts).then(() => {
+        for (let i = 0; i < nodes.length; i++) {
+          let listOptions = nodes[i].text.getStyledTextSegments([
+            "listOptions",
+          ]);
 
-                    } else if (curr.endsWith("\n\n")) {
-                        nodes[i].text.insertCharacters(nodes[i].text.characters.length, `${tag}`, 'BEFORE')
+          if (!nodes[i].text.characters.includes(longTag)) {
+            longTag = tag;
+          }
 
-                    } else if (curr.endsWith("\n")) {
-                        nodes[i].text.insertCharacters(nodes[i].text.characters.length, `\n${tag}`, 'BEFORE')
+          while (nodes[i].text.characters.includes(longTag)) {
+            let curr = nodes[i].text.characters;
+            let lastOpen = curr.lastIndexOf(longTag);
+            let nextClose = curr.indexOf(back, lastOpen) + back.length;
+            nodes[i].text.deleteCharacters(lastOpen, nextClose);
 
-                    } else {
-                        nodes[i].text.insertCharacters(nodes[i].text.characters.length, `\n\n${tag}`, 'BEFORE')
+            // TODO: MAKE THIS WORK CONSISTENTLY
 
-                    }
+            let insertLength = longTag.length;
+            for (let j = 0; j < listOptions.length; j++) {
+              // console.log("WORKING")
+              let start = listOptions[j].start;
+              let end = listOptions[j].end;
+              let los = listOptions[j].listOptions;
 
-                    // Persist listOptions for original text
-                    for (let j = 0; j < listOptions.length; j++) {
-                        nodes[i].text.setRangeListOptions(listOptions[j].start, listOptions[j].end, listOptions[j].listOptions)
-                    }
+              if (listOptions[j].start > nextClose) {
+                // If start is after the removed segment
+                start -= insertLength;
+              }
+
+              if (
+                listOptions[j].start >= lastOpen &&
+                listOptions[j].start <= nextClose
+              ) {
+                // If start is somewhere in the removed segment, start at first index after removed
+                // (which is the original start of the removed segment)
+                start = lastOpen;
+              }
+
+              if (
+                listOptions[j].end >= lastOpen &&
+                listOptions[j].end <= nextClose
+              ) {
+                // Same as above for end
+                end = lastOpen;
+              }
+
+              if (listOptions[j].end > nextClose) {
+                // If start is after the removed segment
+                end -= insertLength;
+              }
+
+              if (end > start && start < nodes[i].text.characters.length) {
+                if (end > nodes[i].text.characters.length) {
+                  end = nodes[i].text.characters.length;
                 }
-                resetTags()
-            })
-            break
-
-
-        case 'remove-tag':
-            let tag = `${front}${msg.tag.trim()}${back}`
-            let longTag = `\n${tag}`
-
-            loadFonts(fonts).then(() => {
-                for (let i = 0; i < nodes.length; i++) {
-                    let listOptions = nodes[i].text.getStyledTextSegments(["listOptions"])
-
-                    if (!nodes[i].text.characters.includes(longTag)) {
-                        longTag = tag
-                    }
-
-                    while (nodes[i].text.characters.includes(longTag)) {
-                        let curr = nodes[i].text.characters
-                        let lastOpen = curr.lastIndexOf(longTag)
-                        let nextClose = curr.indexOf(back, lastOpen) + back.length
-                        nodes[i].text.deleteCharacters(lastOpen, nextClose)
-
-                        let insertLength = longTag.length
-                        for (let j = 0; j < listOptions.length; j++) {
-                            // console.log("WORKING")
-                            let start = listOptions[j].start
-                            let end = listOptions[j].end
-                            let los = listOptions[j].listOptions
-
-                            if (listOptions[j].start > nextClose) {
-                                // If start is after the removed segment
-                                start -= insertLength
-                            } 
-
-                            if (listOptions[j].start >= lastOpen && listOptions[j].start <= nextClose) {
-                                // If start is somewhere in the removed segment, start at first index after removed 
-                                // (which is the original start of the removed segment)
-                                start = lastOpen
-                            }
-
-                            if (listOptions[j].end >= lastOpen && listOptions[j].end <= nextClose) {
-                                // Same as above for end
-                                end = lastOpen
-                            }
-
-                            if (listOptions[j].end > nextClose) {
-                                // If start is after the removed segment
-                                end -= insertLength
-                            } 
-
-                            if (end > start && start < nodes[i].text.characters.length) {
-                                if (end > nodes[i].text.characters.length) {
-                                    end = nodes[i].text.characters.length
-                                }
-                                console.log(nodes[i].text.characters.length, start, end, los, listOptions)
-                                nodes[i].text.setRangeListOptions(start, end, los)
-                            }
-
-
-                        }
-                        if (!nodes[i].text.characters.includes(longTag)) {
-                            longTag = tag
-                        }
-                    }
-                }
-                resetTags()
-            })
-            break
-
-
-        case 'check-selected':
-            let message = "invalid"
-            if (getSelectedStickies(children).length > 0) {
-                message = "valid"
+                // console.log(
+                //   nodes[i].text.characters.length,
+                //   start,
+                //   end,
+                //   los,
+                //   listOptions
+                // );
+                nodes[i].text.setRangeListOptions(start, end, los);
+              }
             }
-
-            figma.ui.postMessage({ msg: message })
-            break
-
-
-        case 'section-tag':
-            tags = getActiveTags(figma.currentPage.selection)
-            selected = getSelectedStickies(figma.currentPage.selection)
-            sections = []
-
-            // Fill sections with title and Sticky Nodes
-            for (let i = 0; i < tags.length; i++) {
-                let section = { title: tags[i], nodes: [] }
-                for (let j = 0; j < selected.length; j++) {
-                    if (selected[j].text.characters.includes(`${front}${tags[i]}${back}`)) {
-                        section.nodes.push(selected[j])
-                    }
-                }
-                sections.push(section)
+            if (!nodes[i].text.characters.includes(longTag)) {
+              longTag = tag;
             }
+          }
+        }
+        resetTags();
+      });
+      break;
 
-            // Add no tag section
-            let noTags = { title: 'no tags', nodes: [] }
-            for (let i = 0; i < selected.length; i++) {
-                let temp_tags = selected[i].text.characters.split(front).filter(tag => tag.indexOf(back) > 0).map(tag => tag.split(back)[0].trim())
-                if (temp_tags.length == 0) {
-                    noTags.nodes.push(selected[i])
-                }
-            }
+    case "check-selected":
+      let message = "invalid";
+      if (getSelectedStickies(children).length > 0) {
+        message = "valid";
+      }
 
-            if (noTags.nodes.length > 0) {
-                sections.push(noTags)
-            }
+      figma.ui.postMessage({ msg: message });
+      break;
 
-            makeSections(sections)
-            break
+    case "section-tag":
+      tags = getActiveTags(figma.currentPage.selection);
+      selected = getSelectedStickies(figma.currentPage.selection);
+      sections = [];
 
+      // Fill sections with title and Sticky Nodes
+      for (let i = 0; i < tags.length; i++) {
+        let section = { title: tags[i], nodes: [] };
+        for (let j = 0; j < selected.length; j++) {
+          if (
+            selected[j].text.characters.includes(`${front}${tags[i]}${back}`)
+          ) {
+            section.nodes.push(selected[j]);
+          }
+        }
+        sections.push(section);
+      }
 
-        case 'section-color':
-            selected = getSelectedStickies(figma.currentPage.selection)
-            sections = []
+      // Add no tag section
+      let noTags = { title: "no tags", nodes: [] };
+      for (let i = 0; i < selected.length; i++) {
+        let temp_tags = selected[i].text.characters
+          .split(front)
+          .filter((tag) => tag.indexOf(back) > 0)
+          .map((tag) => tag.split(back)[0].trim());
+        if (temp_tags.length == 0) {
+          noTags.nodes.push(selected[i]);
+        }
+      }
 
-            let activeColorIds = selected.map(s => s.fills[0].color)
-            let activeColors = []
-            let nodeColors = []
+      if (noTags.nodes.length > 0) {
+        sections.push(noTags);
+      }
 
-            // Match colour codes with names for system defaul colours
-            for (let i = 0; i < selected.length; i++) {
-                let colorName = "custom"
-                for (let j = 0; j < colors.length; j++) {
-                    if (activeColorIds[i].r == colors[j].r && activeColorIds[i].g == colors[j].g && activeColorIds[i].b == colors[j].b) {
-                        activeColors.push(colors[j].name)
-                        colorName = colors[j].name
-                        break
-                    }
-                }
+      makeSections(sections);
+      break;
 
-                nodeColors.push({ node: selected[i], color: colorName })
+    case "section-color":
+      selected = getSelectedStickies(figma.currentPage.selection);
+      sections = [];
 
-            }
+      let activeColorIds = selected.map((s) => s.fills[0].color);
+      let activeColors = [];
+      let nodeColors = [];
 
-            activeColors = [...new Set(activeColors)]
-            if (nodeColors.map(nc => nc.color).includes("custom")) {
-                activeColors.push("custom")
-            }
+      // Match colour codes with names for system default colours
+      for (let i = 0; i < selected.length; i++) {
+        let colorName = "custom";
+        for (let j = 0; j < colors.length; j++) {
+          if (
+            activeColorIds[i].r == colors[j].r &&
+            activeColorIds[i].g == colors[j].g &&
+            activeColorIds[i].b == colors[j].b
+          ) {
+            activeColors.push(colors[j].name);
+            colorName = colors[j].name;
+            break;
+          }
+        }
 
+        nodeColors.push({ node: selected[i], color: colorName });
+      }
 
-            // Fill sections with title and Sticky Nodes
-            for (let i = 0; i < activeColors.length; i++) {
-                let section = { title: activeColors[i], nodes: [] }
-                for (let j = 0; j < nodeColors.length; j++) {
-                    if (nodeColors[j].color === activeColors[i]) {
-                        section.nodes.push(nodeColors[j].node)
-                    }
-                }
-                sections.push(section)
-            }
+      activeColors = [...new Set(activeColors)];
+      if (nodeColors.map((nc) => nc.color).includes("custom")) {
+        activeColors.push("custom");
+      }
 
-            makeSections(sections)
-            break
+      // Fill sections with title and Sticky Nodes
+      for (let i = 0; i < activeColors.length; i++) {
+        let section = { title: activeColors[i], nodes: [] };
+        for (let j = 0; j < nodeColors.length; j++) {
+          if (nodeColors[j].color === activeColors[i]) {
+            section.nodes.push(nodeColors[j].node);
+          }
+        }
+        sections.push(section);
+      }
 
+      makeSections(sections);
+      break;
 
-        case 'section-author':
-            selected = getSelectedStickies(figma.currentPage.selection)
-            sections = []
+    case "section-author":
+      selected = getSelectedStickies(figma.currentPage.selection);
+      sections = [];
 
-            let activeAuthors = selected.map(s => s.authorName)
-            activeAuthors = [...new Set(activeAuthors)]
+      let activeAuthors = selected.map((s) => s.authorName);
+      activeAuthors = [...new Set(activeAuthors)];
 
-            // Fill sections with title and Sticky Nodes
-            for (let i = 0; i < activeAuthors.length; i++) {
-                let section = { title: activeAuthors[i], nodes: [] }
-                for (let j = 0; j < selected.length; j++) {
-                    if (selected[j].authorName === activeAuthors[i]) {
-                        section.nodes.push(selected[j])
-                    }
-                }
-                sections.push(section)
-            }
+      // Fill sections with title and Sticky Nodes
+      for (let i = 0; i < activeAuthors.length; i++) {
+        let section = { title: activeAuthors[i], nodes: [] };
+        for (let j = 0; j < selected.length; j++) {
+          if (selected[j].authorName === activeAuthors[i]) {
+            section.nodes.push(selected[j]);
+          }
+        }
+        sections.push(section);
+      }
 
-            makeSections(sections)
-            break
+      makeSections(sections);
+      break;
 
+    case "update-symbols":
+      front = msg.front;
+      back = msg.back;
+      figma.root.setPluginData("front", front);
+      figma.root.setPluginData("back", back);
 
-        case "update-symbols":
-            front = msg.front
-            back = msg.back
-            figma.root.setPluginData('front', front)
-            figma.root.setPluginData('back', back)
+      resetTags();
+      break;
 
-            resetTags()
-            break
-
-
-        default:
-            break
-    }
-
+    default:
+      break;
+  }
 };
