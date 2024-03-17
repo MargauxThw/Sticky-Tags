@@ -1,5 +1,7 @@
 # Sticky Tags
 
+<b>Figma Community link: [Sticky Tags](https://www.figma.com/community/plugin/1212697728465067175/sticky-tags)</b>
+
 > Speed up your synthesis in FigJam with customisable text-based tags and automatic clustering into sections.
 
 Sticky Tags is a text-based tagging tool designed to help you and your team speed up your research synthesis in Figjam.
