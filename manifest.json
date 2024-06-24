@@ -6,6 +6,9 @@
   "documentAccess": "dynamic-page",
   "capabilities": [],
   "enableProposedApi": false,
+  "networkAccess": {
+    "allowedDomains": ["none"]
+  },
   "editorType": [
     "figjam"
   ],
