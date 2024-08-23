@@ -105,7 +105,7 @@ function getActiveTags(children) {
     let tags = []
 
     for (let i = 0; i < children.length; i++) {
-        if (children[i].type === "SECTION") {
+        if (children[i].type === "SECTION" || children[i].type === "GROUP") {
             var ancestors = getAncestorStickies(children[i], [])
             for (let j = 0; j < ancestors.length; j++) {
                 if (ancestors[j].type === "STICKY") {
@@ -150,10 +150,11 @@ function getTagsStates(activeTags, nodes) {
 
 function getAncestorStickies(parent, ancestors) {
     // Recursively get all Stickies in sections (and sections in sections etc.)
+    // Also GROUPS!
     for (let i = 0; i < parent.children.length; i++) {
         if (parent.children[i].type === "STICKY") {
             ancestors.push(parent.children[i])
-        } else if (parent.children[i].type === "SECTION") {
+        } else if (parent.children[i].type === "SECTION" || parent.children[i].type === "GROUP") {
             ancestors = getAncestorStickies(parent.children[i], ancestors)
         }
     }
@@ -166,7 +167,7 @@ function getSelectedStickies(children) {
 
     // Add all selected Sticky Notes to nodes array
     for (let i = 0; i < children.length; i++) {
-        if (children[i].type === "SECTION") {
+        if (children[i].type === "SECTION" || children[i].type === "GROUP") {
             var ancestors = getAncestorStickies(children[i], [])
             for (let j = 0; j < ancestors.length; j++) {
                 if (ancestors[j].type === "STICKY") {
