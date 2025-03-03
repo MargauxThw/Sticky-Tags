@@ -268,7 +268,7 @@ figma.ui.onmessage = msg => {
     const nodes = getSelectedStickies(children)
     var allFonts = []
     for (let i = 0; i < nodes.length; i++) {
-        allFonts.push(nodes[i].text.getStyledTextSegments(['fontName']).map(n => `${n.fontName.family} | ${n.fontName.style}`))
+        allFonts.push(`${nodes[i].text.fontName.family} | ${nodes[i].text.fontName.style}`)
     }
     allFonts = allFonts.flat(1)
     const fonts = [...new Set(allFonts)]
@@ -315,7 +315,7 @@ figma.ui.onmessage = msg => {
                         nodes[i].text.insertCharacters(nodes[i].text.characters.length, `\n${tag}`, 'BEFORE')
 
                     } else {
-                        nodes[i].text.insertCharacters(nodes[i].text.characters.length, `\n\n${tag}`, 'BEFORE')
+                        nodes[i].text.insertCharacters(nodes[i].text.characters.length, `${tag}`, 'BEFORE')
 
                     }
 
@@ -349,7 +349,6 @@ figma.ui.onmessage = msg => {
 
                         let insertLength = longTag.length
                         for (let j = 0; j < listOptions.length; j++) {
-                            // console.log("WORKING")
                             let start = listOptions[j].start
                             let end = listOptions[j].end
                             let los = listOptions[j].listOptions
@@ -379,7 +378,6 @@ figma.ui.onmessage = msg => {
                                 if (end > nodes[i].text.characters.length) {
                                     end = nodes[i].text.characters.length
                                 }
-                                console.log(nodes[i].text.characters.length, start, end, los, listOptions)
                                 nodes[i].text.setRangeListOptions(start, end, los)
                             }
 
