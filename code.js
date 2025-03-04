@@ -268,6 +268,7 @@ figma.ui.onmessage = msg => {
     const nodes = getSelectedStickies(children)
     var allFonts = []
     for (let i = 0; i < nodes.length; i++) {
+        allFonts.push(nodes[i].text.getStyledTextSegments(['fontName']).map(n => `${n.fontName.family} | ${n.fontName.style}`))
         allFonts.push(`${nodes[i].text.fontName.family} | ${nodes[i].text.fontName.style}`)
     }
     allFonts = allFonts.flat(1)
@@ -311,7 +312,7 @@ figma.ui.onmessage = msg => {
                     } else if (curr.endsWith("\n\n")) {
                         nodes[i].text.insertCharacters(nodes[i].text.characters.length, `${tag}`, 'BEFORE')
 
-                    } else if (curr.endsWith("\n")) {
+                    } else if (curr.endsWith("\n") || curr !== "") {
                         nodes[i].text.insertCharacters(nodes[i].text.characters.length, `\n${tag}`, 'BEFORE')
 
                     } else {
